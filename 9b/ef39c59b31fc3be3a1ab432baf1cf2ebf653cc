@@ -1,0 +1,19 @@
+README.md
+  s_4b1304fd392b8f::t_893aef352d506d 1-201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9bef39c59b31fc3be3a1ab432baf1cf2ebf653cc",
+  "prompts": {},
+  "sessions": {
+    "s_4b1304fd392b8f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ab92-b172-77b3-98c5-29bc6d81413a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "kaining.lkn <kaining.lkn@antgroup.com>"
+    }
+  }
+}
