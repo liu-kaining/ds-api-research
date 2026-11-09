@@ -1,0 +1,346 @@
+{
+  "date": "2026-11-05",
+  "timezone": "Asia/Shanghai",
+  "sources": [
+    {
+      "id": "S01",
+      "title": "DeepInfer · 公开范围与推理核心",
+      "owner": "DeepSeek",
+      "kind": "official",
+      "date": "核验 2026-11-05",
+      "url": "https://github.com/deepseek-ai/DeepInfer",
+      "scope": "生产引擎定位；公开版本目前仅离线核心，缺少在线缓存、E/P/D 分离及 DP 均衡。",
+      "limit": "不能仅凭开源仓库重建完整在线 API。"
+    },
+    {
+      "id": "S02",
+      "title": "V4.1 Flash Deployment Q&A · v0.2",
+      "owner": "DeepSeek",
+      "kind": "official",
+      "date": "2026-11-03 · 固定 commit",
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/a679bb86ce36e883a98a97733492b686e5b9a08e/doc/inference_deployment_qa.md",
+      "scope": "阶段分离、分级缓存、EP 故障域及扩缩容等部署披露。",
+      "limit": "仅代表文档对应部署；处置剧本与全公司架构不是官方披露。"
+    },
+    {
+      "id": "S03",
+      "title": "V3/R1 Inference System Overview",
+      "owner": "DeepSeek",
+      "kind": "history",
+      "date": "2025-03-01 · 历史快照",
+      "url": "https://github.com/deepseek-ai/open-infra-index/blob/3122a25220273cb0806f591e52c4171bd869d8ad/202502OpenSourceWeek/day_6_one_more_thing_deepseekV3R1_inference_system_overview.md",
+      "scope": "历史 H800 集群、P/D 分离和专家并行设计。",
+      "limit": "历史硬件、吞吐、成本不能当作当前承诺，也不能与新版本随意拼接。"
+    },
+    {
+      "id": "S04",
+      "title": "DeepEP · MoE 通信",
+      "owner": "DeepSeek",
+      "kind": "official",
+      "date": "核验 2026-11-05",
+      "url": "https://github.com/deepseek-ai/DeepEP",
+      "scope": "MoE Token dispatch/combine、NVLink/RDMA 及 all-to-all 通信。",
+      "limit": "通信性能优化不构成服务可用性承诺；V1/V2 配置不同。"
+    },
+    {
+      "id": "S05",
+      "title": "EPLB · Expert Parallelism Load Balancer",
+      "owner": "DeepSeek",
+      "kind": "official",
+      "date": "核验 2026-11-05",
+      "url": "https://github.com/deepseek-ai/EPLB",
+      "scope": "热点专家副本与拓扑感知放置。",
+      "limit": "专家副本用于负载均衡，不等于完整服务备用实例。"
+    },
+    {
+      "id": "S06",
+      "title": "FlashMLA · Attention kernels",
+      "owner": "DeepSeek",
+      "kind": "official",
+      "date": "核验 2026-11-05",
+      "url": "https://github.com/deepseek-ai/FlashMLA",
+      "scope": "专用 MLA 内核及硬件、软件兼容边界。",
+      "limit": "不能推导所有 GPU、模型与形状都可用。"
+    },
+    {
+      "id": "S07",
+      "title": "DeepGEMM · FP8 / grouped GEMM",
+      "owner": "DeepSeek",
+      "kind": "official",
+      "date": "核验 2026-11-05",
+      "url": "https://github.com/deepseek-ai/DeepGEMM",
+      "scope": "矩阵计算、JIT 与兼容性测试依据。",
+      "limit": "内核机制不能证明 DeepSeek 发生过数值或编译事故。"
+    },
+    {
+      "id": "S08",
+      "title": "3FS · Fire-Flyer File System",
+      "owner": "DeepSeek",
+      "kind": "official",
+      "date": "核验 2026-11-05",
+      "url": "https://github.com/deepseek-ai/3FS",
+      "scope": "面向训练和推理的分布式存储；客户端/服务端版本兼容提示。",
+      "limit": "开源存储能力不等于 API 状态一致性或缓存持久性保证。"
+    },
+    {
+      "id": "S09",
+      "title": "deepseek-recipe · 协议编码与输出解析",
+      "owner": "DeepSeek",
+      "kind": "official",
+      "date": "核验 2026-11-05",
+      "url": "https://github.com/deepseek-ai/deepseek-recipe",
+      "scope": "输入编码、解码、响应格式和工具/思考内容解析。",
+      "limit": "不是完整网关、账户、安全或计费实现。"
+    },
+    {
+      "id": "S10",
+      "title": "DualPipe · 训练与在线路径边界",
+      "owner": "DeepSeek",
+      "kind": "official",
+      "date": "核验 2026-11-05",
+      "url": "https://github.com/deepseek-ai/DualPipe",
+      "scope": "训练阶段计算与通信重叠。",
+      "limit": "本研究不将训练算法画进 API 在线推理路径。"
+    },
+    {
+      "id": "S11",
+      "title": "Rate Limit · 并发、隔离与保活",
+      "owner": "DeepSeek API",
+      "kind": "contract",
+      "date": "核验 2026-11-05",
+      "url": "https://api-docs.deepseek.com/quick_start/rate_limit/",
+      "scope": "账户并发、user_id 隔离；排队保活与未开始推理时的连接关闭。",
+      "limit": "限额会变；并发额度不是固定 QPS、吞吐或延迟保证。"
+    },
+    {
+      "id": "S12",
+      "title": "Error Codes",
+      "owner": "DeepSeek API",
+      "kind": "contract",
+      "date": "核验 2026-11-05",
+      "url": "https://api-docs.deepseek.com/quick_start/error_codes/",
+      "scope": "400/401/402/422/429/500/503 等错误分类。",
+      "limit": "仅凭状态码无法确定内部故障层级。"
+    },
+    {
+      "id": "S13",
+      "title": "Chat Completions · 响应与终态",
+      "owner": "DeepSeek API",
+      "kind": "contract",
+      "date": "核验 2026-11-05",
+      "url": "https://api-docs.deepseek.com/api/create-chat-completion/",
+      "scope": "增量响应、finish_reason、usage、工具交接及长度/资源/中止终态。",
+      "limit": "HTTP 成功和 stop 本身不能证明业务任务成功。"
+    },
+    {
+      "id": "S14",
+      "title": "Context Caching",
+      "owner": "DeepSeek API",
+      "kind": "contract",
+      "date": "核验 2026-11-05",
+      "url": "https://api-docs.deepseek.com/guides/kv_cache/",
+      "scope": "前缀计算复用及 hit/miss Token 用量。",
+      "limit": "不等于答案缓存；不保证每次命中或会话持久恢复。"
+    },
+    {
+      "id": "S15",
+      "title": "Thinking Mode · 多轮工具协议",
+      "owner": "DeepSeek API",
+      "kind": "contract",
+      "date": "核验 2026-11-05",
+      "url": "https://api-docs.deepseek.com/guides/thinking_mode/",
+      "scope": "思考模式与工具轮次的历史消息要求。",
+      "limit": "工具由客户端执行，模型响应不提供业务恰好一次保证。"
+    },
+    {
+      "id": "S16",
+      "title": "Responses API · 兼容范围",
+      "owner": "DeepSeek API",
+      "kind": "contract",
+      "date": "核验 2026-11-05",
+      "url": "https://api-docs.deepseek.com/guides/responses_api/",
+      "scope": "无状态兼容、不支持字段及独立终止事件。",
+      "limit": "不能把相似接口名称理解成相同状态、存储或后台执行能力。"
+    },
+    {
+      "id": "S17",
+      "title": "API Updates · 模型别名与版本",
+      "owner": "DeepSeek API",
+      "kind": "contract",
+      "date": "2026-10-17 条目等",
+      "url": "https://api-docs.deepseek.com/updates/",
+      "scope": "V4.1 Flash 发布及后续别名更新记录。",
+      "limit": "更新记录不意味着 API 允许任意旧版本固定或回滚。"
+    },
+    {
+      "id": "S18",
+      "title": "公开事件 · 2026-10-15",
+      "owner": "DeepSeek Status",
+      "kind": "incident",
+      "date": "2026-10-15",
+      "url": "https://status.deepseek.com/incidents/7116348214287",
+      "scope": "官方记录的服务退化、事件时间及恢复更新。",
+      "limit": "未披露技术根因；不能归因为 GPU、缓存或调度。"
+    },
+    {
+      "id": "S19",
+      "title": "公开事件 · 2026-09-20",
+      "owner": "DeepSeek Status",
+      "kind": "incident",
+      "date": "2026-09-20",
+      "url": "https://status.deepseek.com/incidents/7007335047287",
+      "scope": "Flash 服务退化 13 分钟的公开记录。",
+      "limit": "无公开技术 RCA；历史组件名称可能随当前命名更新。"
+    },
+    {
+      "id": "S20",
+      "title": "vLLM · Production Metrics",
+      "owner": "vLLM",
+      "kind": "reference",
+      "date": "stable · 核验 2026-11-05",
+      "url": "https://docs.vllm.ai/en/stable/usage/metrics/",
+      "scope": "排队、TTFT、ITL、KV、抢占等参考观测量。",
+      "limit": "不代表 DeepSeek 使用 vLLM；指标名应按实际版本核对。"
+    },
+    {
+      "id": "S21",
+      "title": "vLLM · Optimization and Tuning",
+      "owner": "vLLM",
+      "kind": "reference",
+      "date": "stable · 核验 2026-11-05",
+      "url": "https://docs.vllm.ai/en/stable/configuration/optimization/",
+      "scope": "KV 抢占重算、分块 Prefill 与批量预算取舍。",
+      "limit": "本研究只借鉴机制，不提供可直接套到 DeepSeek 的参数。"
+    },
+    {
+      "id": "S22",
+      "title": "SGLang · PD Disaggregation",
+      "owner": "SGLang",
+      "kind": "reference",
+      "date": "核验 2026-11-05",
+      "url": "https://docs.sglang.io/docs/advanced_features/pd_disaggregation",
+      "scope": "阶段分离、状态传输及资源预留取舍。",
+      "limit": "不是 DeepSeek 内部选型证据。"
+    },
+    {
+      "id": "S23",
+      "title": "DistServe · OSDI 2024",
+      "owner": "论文作者",
+      "kind": "paper",
+      "date": "2024",
+      "url": "https://arxiv.org/abs/2401.09670",
+      "scope": "TTFT/TPOT 双目标与通信约束下的阶段分离研究。",
+      "limit": "实验吞吐收益不应外推成任何平台容量承诺。"
+    },
+    {
+      "id": "S24",
+      "title": "PagedAttention · SOSP 2023",
+      "owner": "论文作者",
+      "kind": "paper",
+      "date": "2023",
+      "url": "https://arxiv.org/abs/2309.06180",
+      "scope": "动态 KV 状态与内存管理的原始研究。",
+      "limit": "不能给 DeepSeek MLA 直接套传统 MHA 每 Token 显存公式。"
+    },
+    {
+      "id": "S25",
+      "title": "Google SRE · Handling Overload",
+      "owner": "Google",
+      "kind": "reference",
+      "date": "SRE Book",
+      "url": "https://sre.google/sre-book/handling-overload/",
+      "scope": "不同请求成本、过载保护、重试预算及多层放大。",
+      "limit": "具体阈值要结合本平台工作量、SLO 与压测确定。"
+    },
+    {
+      "id": "S26",
+      "title": "Dynamo v1.6.1 · Request Migration",
+      "owner": "NVIDIA",
+      "kind": "reference",
+      "date": "固定文档版本 v1.6.1",
+      "url": "https://docs.nvidia.com/dynamo/v1.6.1/kubernetes/fault-tolerance/request-migration",
+      "scope": "请求迁移、Token 状态重放及能力限制。",
+      "limit": "默认关闭；guided/JSON schema 和 n>1 等不受支持；不能推出普适续写。"
+    },
+    {
+      "id": "S27",
+      "title": "Dynamo v1.6.1 · Graceful Shutdown",
+      "owner": "NVIDIA",
+      "kind": "reference",
+      "date": "固定文档版本 v1.6.1",
+      "url": "https://docs.nvidia.com/dynamo/v1.6.1/kubernetes/fault-tolerance/graceful-shutdown",
+      "scope": "摘流、排空、终止超时与清理顺序。",
+      "limit": "不能视为 DeepSeek 已实现的具体控制流程。"
+    },
+    {
+      "id": "S28",
+      "title": "Dynamo v1.6.1 · Cancellation Architecture",
+      "owner": "NVIDIA",
+      "kind": "reference",
+      "date": "固定文档版本 v1.6.1",
+      "url": "https://docs.nvidia.com/dynamo/v1.6.1/knowledge-base/concepts/fault-tolerance/request-cancellation-architecture",
+      "scope": "取消信号传播和实际引擎中止的区别。",
+      "limit": "cancel_received 计数不能证明计算停止或 KV 回收。"
+    },
+    {
+      "id": "S29",
+      "title": "Dynamo v1.6.1 · Request Rejection",
+      "owner": "NVIDIA",
+      "kind": "reference",
+      "date": "固定文档版本 v1.6.1",
+      "url": "https://docs.nvidia.com/dynamo/v1.6.1/kubernetes/fault-tolerance/request-rejection",
+      "scope": "按不同资源维度拒绝过载的参考设计。",
+      "limit": "其 HTTP 529 等实现细节不是 DeepSeek API 契约。"
+    },
+    {
+      "id": "S30",
+      "title": "Dynamo · KV-Aware Routing",
+      "owner": "NVIDIA",
+      "kind": "reference",
+      "date": "核验 2026-11-05",
+      "url": "https://docs.nvidia.com/dynamo/knowledge-base/concepts/system-architecture/kv-aware-routing",
+      "scope": "同时权衡缓存局部性和活跃负载。",
+      "limit": "缓存路由与专家路由是不同层级；不是 DeepSeek 选型证明。"
+    },
+    {
+      "id": "S31",
+      "title": "Dynamo · Fault Tolerance Testing",
+      "owner": "NVIDIA",
+      "kind": "reference",
+      "date": "核验 2026-11-05",
+      "url": "https://docs.nvidia.com/dynamo/latest/knowledge-base/concepts/fault-tolerance/fault-tolerance-testing",
+      "scope": "取消、迁移、GPU、网络等测试范畴。",
+      "limit": "演练只能在已授权隔离环境执行；本页面不连接系统。"
+    },
+    {
+      "id": "S32",
+      "title": "Dynamo · Architecture",
+      "owner": "NVIDIA",
+      "kind": "reference",
+      "date": "核验 2026-11-05",
+      "url": "https://docs.nvidia.com/dynamo/knowledge-base/concepts/architecture",
+      "scope": "请求、发现、事件等通信平面划分。",
+      "limit": "用于说明故障模式，不推断 DeepSeek 使用 etcd/NATS 等组件。"
+    },
+    {
+      "id": "S33",
+      "title": "NCCL · Troubleshooting",
+      "owner": "NVIDIA",
+      "kind": "reference",
+      "date": "核验 2026-11-05",
+      "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/troubleshooting.html",
+      "scope": "GPU 拓扑、网络、通信和运行时的分层诊断。",
+      "limit": "参考诊断方法；DeepEP 不能被等同为 NCCL。"
+    },
+    {
+      "id": "S34",
+      "title": "3FS · Design Notes",
+      "owner": "DeepSeek",
+      "kind": "official",
+      "date": "核验 2026-11-05",
+      "url": "https://github.com/deepseek-ai/3FS/blob/main/docs/design_notes.md",
+      "scope": "存储/元数据职责、复制与恢复的设计依据。",
+      "limit": "存储复制语义不能自动覆盖生成状态和业务动作。"
+    }
+  ]
+}

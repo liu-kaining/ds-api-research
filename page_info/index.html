@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#142a3b">
+  <meta name="description" content="以 DeepSeek 公开资料为锚点，研究模型 API 的架构、典型故障、判别证据、恢复与预防。离线交互研究台。">
+  <title>DeepSeek API · 稳定性研究台</title>
+  <style>@charset "UTF-8";
+:root{--paper:#f6f5ef;--surface:#fffef9;--ink:#142a3b;--muted:#62717a;--rule:#dcded6;--orange:#be4d27;--teal:#21675e;--pale-teal:#e9f1eb;--pale-orange:#faeee3;--blue-gray:#e9edf0;--serif:"Iowan Old Style","Palatino Linotype","Songti SC","Noto Serif CJK SC",Georgia,serif;--sans:"Avenir Next","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;--mono:"SFMono-Regular",Consolas,monospace;--sidebar:236px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.75;-webkit-font-smoothing:antialiased}button,input,select{font:inherit}button,a,input,select,summary{-webkit-tap-highlight-color:transparent}button{color:inherit;cursor:pointer}a{color:inherit;text-decoration:none}a:hover{color:var(--orange)}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--orange);outline-offset:4px}button{touch-action:manipulation}p{margin:0 0 12px}h1,h2,h3,h4{margin:0;font-weight:600;line-height:1.4}h2{font-family:var(--serif);font-size:clamp(28px,3.1vw,40px);letter-spacing:-1px}h3{font-size:18px}h4{font-size:15px}code{font-family:var(--mono);font-size:.87em;background:var(--blue-gray);padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}ul,ol{padding-left:20px;margin:10px 0}li{padding-left:2px;margin:6px 0}button:disabled{cursor:default}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.skip-link{position:fixed;top:-80px;left:20px;background:var(--ink);color:white;padding:12px;z-index:20}.skip-link:focus{top:12px}
+.sidebar{width:var(--sidebar);position:fixed;inset:0 auto 0 0;border-right:1px solid var(--rule);padding:38px 24px 26px;background:#f0f0e8;display:flex;flex-direction:column;z-index:5}.wordmark{display:flex;align-items:center;gap:12px;font-family:var(--serif);font-size:25px;line-height:1.1;font-weight:600}.wordmark small{font-family:var(--mono);font-size:9px;display:block;letter-spacing:1.6px;margin-top:8px;font-weight:400}.brand-mark{width:37px;height:43px;background:var(--ink);color:var(--paper);border-radius:1px 14px 1px 14px;display:grid;place-content:center;position:relative;font-size:35px;font-style:italic}.brand-mark span{position:absolute;font-family:var(--sans);font-size:15px;right:1px;top:-3px;color:var(--orange)}.sidebar-rule{width:38px;height:2px;background:var(--orange);margin:35px 0 20px}.sidebar-label{font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:18px}nav{display:grid;gap:3px}nav>a{display:flex;align-items:center;gap:12px;font-size:13px;padding:10px 9px;border-radius:3px;transition:background .2s}nav>a>span{font-family:var(--mono);font-size:10px;color:var(--muted)}nav>a.active{background:var(--ink);color:var(--surface)}nav>a.active>span{color:#b6c7cf}nav>a i{margin-left:auto;font:10px var(--mono);border:1px solid currentColor;opacity:.6;padding:2px 4px;border-radius:3px}.sidebar-bottom{margin-top:auto;padding-top:30px;font-size:11px;color:var(--muted)}.tiny-kicker{font:9px var(--mono);letter-spacing:1.7px}.sidebar-bottom>strong{display:block;font:22px var(--serif);color:var(--ink);margin:10px 0}.sidebar-bottom a{display:inline-block;margin-top:10px;border-bottom:1px solid var(--rule)}
+main{margin-left:var(--sidebar);padding:0 5.2%;max-width:1780px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:1px solid var(--rule);min-height:76px;font:10px var(--mono);letter-spacing:1px;color:var(--muted)}.topbar>div{display:flex;align-items:center;gap:22px}.text-button{background:none;border:0;border-bottom:1px solid var(--rule);padding:4px 0;color:var(--muted);white-space:nowrap;font-size:12px}.text-button:hover{color:var(--orange);border-color:var(--orange)}.hero{padding:69px 0 48px;display:grid;grid-template-columns:1.22fr .85fr;gap:42px;align-items:center}.eyebrow{font-size:11px;letter-spacing:1.5px;display:flex;align-items:center;gap:10px;color:var(--muted);margin-bottom:25px}.rule{height:1px;width:30px;background:var(--orange)}h1{font-family:var(--serif);font-size:clamp(40px,4.5vw,66px);letter-spacing:-2.5px;line-height:1.25;font-weight:600}h1 em{font-style:normal;color:var(--orange)}.hero-lede{font-size:15px;line-height:1.95;max-width:560px;margin-top:25px;color:#4a5a63}.hero-lede strong{font-weight:500;color:var(--ink)}.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin:29px 0 25px}.button{display:inline-flex;align-items:center;justify-content:space-between;gap:24px;border:1px solid var(--rule);padding:12px 17px;font-size:12px;min-height:45px}.button.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}.button.primary:hover{background:var(--orange);border-color:var(--orange)}.button.quiet{background:transparent}.hero-footnote{font-size:10px;color:var(--muted)}
+.hero-figure{min-height:405px;background:var(--ink);color:#f8f5e9;padding:27px 28px 22px;position:relative;overflow:hidden}.figure-top{display:flex;justify-content:space-between;gap:10px;position:relative;z-index:1;font:9px var(--mono);letter-spacing:1.2px;color:#b2c6cd}.figure-no{color:#eab693;white-space:nowrap}.orbit-ring{position:absolute;right:-120px;top:65px;width:360px;height:360px;border:1px solid #314959;border-radius:50%;box-shadow:0 0 0 30px #203747,0 0 0 31px #314959,0 0 0 62px #203747,0 0 0 63px #314959;opacity:.6}.figure-path{position:relative;padding:37px 0 20px}.figure-path>div{display:grid;grid-template-columns:35px 1fr;align-items:baseline;position:relative}.path-index{font:10px var(--mono);color:#eab693}.figure-path b{font-size:20px;letter-spacing:1px;font-weight:500}.figure-path small{grid-column:2;font:9px var(--mono);color:#9fb5bd;letter-spacing:1px}.figure-path>i{display:block;width:1px;height:17px;background:#68818b;margin:9px 0 9px 5px}.figure-bottom{display:flex;justify-content:space-between;border-top:1px solid #3b5261;padding-top:14px;font-size:11px;position:relative;color:#c3d0d3}.figure-bottom span{color:#eab693}
+.research-strip{display:grid;grid-template-columns:repeat(4,1fr);border-block:1px solid var(--rule);padding:21px 0}.research-strip>div{display:flex;align-items:baseline;gap:12px;border-right:1px solid var(--rule);padding-left:24px}.research-strip>div:first-child{padding-left:0}.research-strip>div:last-child{border:0}.research-strip b{font:31px var(--serif);font-weight:500}.research-strip span{font-size:11px;color:var(--muted)}.intro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin:39px 0 25px}.intro-grid article{position:relative}.insight-no{font:16px var(--serif);color:var(--orange);display:block;margin-bottom:9px}.intro-grid h3{font-size:16px;margin-bottom:10px}.intro-grid p{font-size:12px;color:var(--muted);line-height:1.9}.intro-grid a{font-size:11px;border-bottom:1px solid var(--rule);padding-bottom:4px}
+.tag{font-size:10px;line-height:1.4;padding:4px 7px;display:inline-block;white-space:nowrap;border-radius:2px;font-weight:500;letter-spacing:.2px}.tag.official,.tag.contract{color:var(--teal);background:var(--pale-teal)}.tag.inference{background:var(--pale-orange);color:#a64d27}.tag.reference,.tag.paper{background:var(--blue-gray);color:#506571}.tag.history{background:#eeece4;color:#726956}.tag.incident{color:#a04031;background:#f8e9e3}.ref{display:inline-block;font:10px var(--mono);padding:2px 5px;background:var(--blue-gray);color:#4f6370;border-radius:2px;margin:2px 2px 2px 0;vertical-align:middle}.ref:hover{background:var(--ink);color:white}.refs{margin-top:15px}.refs>small{font-size:10px;color:var(--muted);margin-right:8px}.boundary-box{border:1px solid var(--rule);margin-bottom:30px}.boundary-box>summary{padding:16px 19px;display:flex;gap:14px;align-items:center;font-size:12px;cursor:pointer;list-style:none}.boundary-box .plus{margin-left:auto}.boundary-grid{display:grid;grid-template-columns:1fr 1fr;gap:25px;padding:10px 23px 23px}.boundary-grid h4{font-size:13px}.boundary-grid p{font-size:12px;color:var(--muted);margin-top:8px}.research-section{padding:61px 0 49px;border-top:1px solid var(--rule)}.section-anchor{scroll-margin-top:24px}.section-heading{max-width:830px;margin-bottom:28px}.section-index{font:10px var(--mono);letter-spacing:2px;color:var(--orange);margin-bottom:15px}.section-heading h2{margin-bottom:17px}.section-heading>p{font-size:13px;color:var(--muted);line-height:1.95}.legend{display:flex;flex-wrap:wrap;align-items:center;gap:15px;font-size:10px;color:var(--muted);margin-bottom:20px}.legend>span{display:flex;align-items:center;gap:6px}.dot{width:6px;height:6px;display:inline-block;border-radius:50%}.dot.teal{background:var(--teal)}.dot.amber{background:var(--orange)}.legend-note{margin-left:auto;font-size:9px}
+.architecture-layout{display:grid;grid-template-columns:1.45fr 1fr;gap:19px;align-items:stretch}.architecture-map{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-content:start;padding:22px;background:#eeeee6;border:1px solid var(--rule)}.map-group-title{grid-column:1/-1;font:10px var(--mono);letter-spacing:1px;color:var(--muted);margin-top:10px}.map-group-title:first-child{margin-top:0}.node-button{text-align:left;background:var(--surface);padding:14px 12px;border:1px solid #d5dcd4;min-height:101px;position:relative;transition:background .15s,transform .15s}.node-button:hover{transform:translateY(-2px);border-color:var(--teal)}.node-button.selected{background:var(--ink);color:var(--surface);border-color:var(--ink)}.node-button .node-number{display:block;font:10px var(--mono);color:var(--muted);margin-bottom:10px}.node-button.selected .node-number{color:#c0d0d4}.node-button b{display:block;font-size:12px;font-weight:500;line-height:1.6}.node-button small{font-size:9px;color:var(--muted);line-height:1.6;display:block;margin-top:4px}.node-button.selected small{color:#beced1}.node-button .dot{position:absolute;top:15px;right:11px}.map-note{grid-column:1/-1;font-size:10px;color:var(--muted);line-height:1.8;margin-top:8px}.node-detail{padding:22px;background:var(--surface);border:1px solid var(--rule);font-size:12px;line-height:1.9}.node-detail h3{font:25px var(--serif);margin:10px 0 15px}.node-detail h4{font-size:11px;margin-top:16px;color:var(--teal)}.node-detail p{color:#4f6068;margin-top:5px}.node-detail ul{padding-left:16px;color:#4f6068}.case-jumps{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}.case-jump{font:10px var(--mono);border:1px solid var(--rule);padding:5px 7px;background:none;color:var(--ink)}.case-jump:hover{background:var(--ink);color:white}
+.expander{margin-top:24px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}.expander>summary{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 0;font-size:12px;font-weight:500;cursor:pointer;list-style:none}.expander>summary::-webkit-details-marker,.boundary-box>summary::-webkit-details-marker{display:none}.expander>summary>span{color:var(--orange);font-size:17px;transition:transform .2s}details[open]>.summary-plus,details[open]>summary>.plus,details[open].expander>summary>span{transform:rotate(45deg)}.table-wrap{overflow:auto;max-width:100%;overscroll-behavior-x:contain}table{width:100%;border-collapse:collapse;font-size:11px;line-height:1.8;text-align:left}th{background:#edeee7;font-size:10px;font-weight:500;letter-spacing:.5px;padding:12px;color:var(--muted);white-space:nowrap}td{vertical-align:top;padding:15px 12px;border-bottom:1px solid var(--rule);min-width:95px}td:first-child{font-weight:500;color:var(--ink)}td p{margin:0}td .ref{margin-top:7px}tbody tr:last-child td{border-bottom:0}.mini-link{display:block;margin-top:5px;font-size:10px;color:var(--orange)}
+.tab-row{display:flex;gap:0;border-bottom:1px solid var(--rule);overflow-x:auto;scrollbar-width:thin}.tab-row>button{flex:0 0 auto;white-space:nowrap;background:none;border:0;border-bottom:2px solid transparent;padding:13px 17px;font-size:12px;color:var(--muted)}.tab-row>button[aria-selected=true]{border-color:var(--orange);color:var(--ink);font-weight:600}.tab-row>button:first-child{padding-left:0}.journey-panel{border:1px solid var(--rule);border-top:0;padding:27px;background:var(--surface)}.journey-top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}.journey-top h3{font-size:18px}.journey-top small{font-size:10px;color:var(--muted);display:block;margin-top:6px}.journey-state{font:10px var(--mono);padding:8px 11px;background:var(--pale-teal);color:var(--teal)}.journey-state.bad{background:var(--pale-orange);color:var(--orange)}.phase-bars{display:flex;width:100%;gap:3px;align-items:stretch;height:59px}.phase-bar{background:#cfdcd4;min-width:44px;display:flex;align-items:center;justify-content:center;font-size:10px;position:relative;color:#294a43}.phase-bar:nth-child(even){background:#e7ece5}.phase-bar.highlight{background:var(--orange);color:white}.phase-bar>span{line-height:1.4;text-align:center}.phase-bar small{font:9px var(--mono);display:block;margin-top:5px;opacity:.8}.bar-caption{text-align:right;color:var(--muted);font-size:9px;margin-top:7px}.journey-bottom{display:grid;grid-template-columns:1fr 1fr;gap:35px;margin-top:20px}.event-list{list-style:none;padding:0;margin:0}.event-list li{padding-left:17px;position:relative;font-size:11px;line-height:1.9;color:#52616a;margin:0 0 12px}.event-list li::before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;background:var(--teal);border-radius:50%}.journey-finding{border-left:2px solid var(--orange);padding-left:20px;font-size:12px;line-height:1.9}.journey-finding>a{display:inline-block;font-size:11px;color:var(--orange);margin-top:10px}.protocol-note{display:flex;gap:16px;margin-top:20px;align-items:flex-start;font-size:11px;line-height:1.9;color:var(--muted)}.protocol-note>.tag{margin-top:3px}.protocol-note p{margin:0}
+.filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.search-field{display:flex;align-items:center;gap:9px;border:1px solid #cfd5ce;background:var(--surface);padding:0 12px;min-height:44px;flex:1;min-width:230px}.search-field>span{font-size:24px;line-height:1;color:var(--muted)}.search-field input{border:0;outline:0;background:none;width:100%;min-width:0;font-size:12px;color:var(--ink);padding:10px 0}.search-field kbd{font:10px var(--mono);padding:1px 5px;border:1px solid var(--rule);color:var(--muted)}select{background:var(--surface);border:1px solid #cfd5ce;color:var(--ink);min-height:44px;font-size:11px;padding:0 25px 0 10px;max-width:100%}.filter-bar>.text-button{margin-left:4px}.case-results{display:flex;justify-content:space-between;gap:18px;font-size:10px;color:var(--muted);margin:15px 0}.case-results>span:first-child{color:var(--ink);font-family:var(--mono)}.case-workbench{display:grid;grid-template-columns:minmax(220px,.65fr) minmax(0,1.7fr);gap:18px;align-items:start}.case-list{display:grid;gap:6px;max-height:900px;overflow-y:auto;scrollbar-width:thin;padding-right:5px;position:sticky;top:20px}.case-option{width:100%;text-align:left;border:1px solid var(--rule);background:transparent;padding:13px 14px}.case-option:hover{background:var(--surface);border-color:#aabcb2}.case-option.selected{background:var(--ink);color:var(--surface);border-color:var(--ink)}.case-option .case-option-top{display:flex;justify-content:space-between;gap:7px;font:9px var(--mono);color:var(--muted);margin-bottom:7px}.case-option.selected .case-option-top{color:#bdcdd2}.case-option b{font-size:12px;line-height:1.7;display:block;font-weight:500}.case-option small{display:block;margin-top:8px;font-size:9px;color:var(--muted)}.case-option.selected small{color:#bdcdd2}.case-detail{padding:26px;border:1px solid var(--rule);background:var(--surface);min-width:0}.case-detail-header{border-bottom:1px solid var(--rule);padding-bottom:19px;margin-bottom:19px}.case-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:10px}.case-meta .case-id{font:13px var(--mono);color:var(--orange);margin-right:auto}.case-detail h3{font:27px var(--serif);line-height:1.5;margin:14px 0 12px}.case-summary{font-size:12px;color:var(--muted);line-height:1.9}.case-inline-tools{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}.case-inline-tools .refs{margin-top:0}.case-part{margin:23px 0}.case-part h4{font-size:12px;letter-spacing:.2px;color:var(--teal);display:flex;align-items:center;gap:8px;margin-bottom:10px}.case-part h4>span{font:10px var(--mono);color:var(--muted)}.case-part p,.case-part li{font-size:12px;color:#4a5a63;line-height:1.95}.case-part ol{padding-left:18px}.case-recovery-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;border-block:1px solid var(--rule);padding:2px 0}.case-checks{background:var(--pale-teal);padding:16px 19px;margin-top:20px}.case-checks h4{font-size:12px;color:var(--teal)}.case-checks ul{margin-bottom:0}.case-checks li{font-size:11px;line-height:1.9}.danger-note{background:var(--pale-orange);padding:13px 16px;font-size:11px;color:#864729;line-height:1.9}.danger-note b{display:block;margin-bottom:3px}.case-bottom-note{font-size:10px;line-height:1.8;color:var(--muted);margin-top:17px}.empty-state{border:1px dashed #bfc8bf;padding:30px 15px;color:var(--muted);font-size:12px;text-align:center}.empty-state b{display:block;margin-bottom:12px;color:var(--ink)}
+.lab-panel{border:1px solid var(--rule);border-top:0;padding:27px;background:var(--surface)}.lab-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:42px}.lab-controls h3{font-size:17px;margin-bottom:19px}.slider-control{margin:0 0 19px}.slider-label{display:flex;justify-content:space-between;gap:14px;font-size:11px;margin-bottom:6px;align-items:baseline}.slider-label output{font:13px var(--mono);font-weight:500;color:var(--ink);white-space:nowrap}.slider-control input[type=range]{width:100%;accent-color:var(--teal);height:20px;cursor:pointer}.slider-endpoints{display:flex;justify-content:space-between;font:9px var(--mono);color:var(--muted)}.lab-result{padding:25px;background:#eef0e7;align-self:start}.lab-result-label{font-size:10px;color:var(--muted);letter-spacing:1px}.lab-main-value{font:46px var(--serif);margin:8px 0 5px;color:var(--ink);line-height:1.2;overflow-wrap:anywhere}.lab-main-value small{font:11px var(--sans);margin-left:7px;color:var(--muted)}.lab-result-sub{font-size:11px;color:#52665c;line-height:1.9}.lab-secondary{display:grid;grid-template-columns:1fr 1fr;gap:20px;border-top:1px solid #d4ddcf;margin-top:23px;padding-top:18px}.lab-secondary b{font:24px var(--serif);display:block}.lab-secondary span{font-size:10px;color:var(--muted)}.lab-bars{margin-top:22px}.lab-bar-row{margin-bottom:14px}.lab-bar-row>div:first-child{display:flex;justify-content:space-between;font-size:10px;margin-bottom:5px;gap:12px}.bar-track{height:9px;background:#dfe5d9;overflow:hidden}.bar-fill{height:100%;background:var(--teal);min-width:0;transition:width .2s}.bar-fill.base{background:#9cae9e}.bar-fill.alert{background:var(--orange)}.lab-assumptions{border-top:1px solid var(--rule);padding-top:18px;margin-top:24px;font-size:11px;color:var(--muted);line-height:1.9}.lab-assumptions b{color:var(--ink)}.formula{font:11px var(--mono);padding:12px 14px;background:var(--blue-gray);line-height:1.9;margin:12px 0;overflow-wrap:anywhere}.lab-verdict{padding:11px 13px;font-size:11px;line-height:1.8;margin-top:17px;background:var(--pale-teal);color:var(--teal)}.lab-verdict.warn{background:var(--pale-orange);color:var(--orange)}
+.slo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}.slo-grid article{background:var(--surface);padding:23px}.slo-grid h3{font-size:15px}.slo-grid code{display:block;font-size:10px;padding:10px;margin:12px 0;line-height:1.9;background:#eef0e7}.slo-grid p{font-size:11px;color:var(--muted);line-height:1.95;margin:0}.callout{display:flex;gap:22px;padding:22px;border-left:2px solid var(--orange);background:#efeee6;margin:24px 0}.callout-label{font-size:11px;color:var(--orange);white-space:nowrap}.callout p{font-size:11px;line-height:1.95;color:var(--muted);margin:0}.response-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.response-step{border-top:2px solid var(--ink);padding-top:15px}.response-step .time{font:10px var(--mono);color:var(--orange)}.response-step h3{font-size:14px;margin:10px 0}.response-step p{font-size:11px;color:var(--muted);line-height:1.95}.response-step .stop-rule{padding-top:10px;border-top:1px solid var(--rule);font-size:10px;color:#8a4f31}.subsection-heading{margin:39px 0 18px}.subsection-heading h3{font:25px var(--serif);margin-bottom:10px}.subsection-heading p{font-size:11px;color:var(--muted)}.roadmap{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.roadmap article{padding:20px;border:1px solid var(--rule);background:var(--surface)}.priority{font:11px var(--mono);color:var(--orange);display:flex;justify-content:space-between;gap:10px}.priority small{font:9px var(--sans);color:var(--muted)}.roadmap h4{font-size:14px;margin:13px 0}.roadmap p{font-size:11px;color:var(--muted);line-height:1.9}.roadmap .roadmap-accept{font-size:10px;color:var(--teal);border-top:1px solid var(--rule);padding-top:11px;margin-bottom:0}
+.incident-evidence{display:grid;grid-template-columns:1fr 1fr;gap:22px}.incident-evidence article{padding:24px;background:#efeee7;border-top:2px solid var(--orange)}.incident-evidence h3{font:29px var(--serif);margin:17px 0 7px}.incident-time{font-size:12px}.incident-evidence p:not(.incident-time){font-size:11px;color:var(--muted);line-height:1.95}.incident-evidence strong{font-size:11px;font-weight:500;margin-right:10px}.sources-heading{display:flex;justify-content:space-between;gap:25px;align-items:center;margin:34px 0 20px}.sources-heading>h3{font:25px var(--serif)}.sources-heading .search-field{max-width:360px}.source-item{border-top:1px solid var(--rule);scroll-margin-top:35px}.source-item:last-child{border-bottom:1px solid var(--rule)}.source-item>summary{cursor:pointer;list-style:none;display:grid;grid-template-columns:38px 1fr auto;gap:13px;align-items:center;padding:14px 0}.source-item>summary::-webkit-details-marker{display:none}.source-id{font:10px var(--mono);color:var(--muted)}.source-item strong{font-size:12px;font-weight:500}.source-item .source-date{font-size:9px;color:var(--muted);display:block;margin-top:4px}.source-body{padding:0 0 20px 51px;max-width:900px}.source-body p{font-size:11px;color:var(--muted);line-height:1.95;margin:0 0 7px}.source-body b{color:var(--ink);font-weight:500}.source-url{display:block;color:var(--teal);font:10px var(--mono);overflow-wrap:anywhere;margin-top:12px}.source-item:target{background:var(--pale-teal)}.glossary{display:grid;grid-template-columns:170px 1fr;gap:12px 24px;font-size:12px;padding:10px 0 20px}.glossary dt{font-weight:500}.glossary dd{margin:0;color:var(--muted)}.page-footer{border-top:1px solid var(--rule);padding:36px 0 55px;display:flex;justify-content:space-between;gap:25px;color:var(--muted);font-size:10px;line-height:2}.page-footer b{font:10px var(--mono);letter-spacing:1px;color:var(--ink)}.page-footer p{margin:7px 0}.page-footer a{border-bottom:1px solid var(--rule)}.back-top{position:fixed;bottom:23px;right:20px;background:var(--ink);color:var(--paper);width:36px;height:36px;display:grid;place-content:center;border-radius:50%;font-size:18px;z-index:4}.noscript{position:fixed;inset:auto 20px 20px;background:var(--pale-orange);padding:20px;z-index:15}.copy-state{color:var(--teal);font-size:10px}
+@media(min-width:1600px){main{padding-inline:75px}.hero{gap:70px}h1{font-size:72px}.hero-figure{min-height:430px}.figure-path{padding-top:45px}.case-list{max-height:1030px}}
+@media(max-width:1200px){:root{--sidebar:205px}.sidebar{padding:30px 18px}.wordmark{font-size:22px}.brand-mark{width:33px;height:39px}main{padding-inline:4%}.hero{gap:25px;grid-template-columns:1.1fr .9fr}.hero-figure{padding:23px 20px}.hero-footnote{font-size:9px}.research-strip>div{display:block;padding-left:20px}.research-strip span{display:block;margin-top:5px}.architecture-layout{grid-template-columns:1.25fr 1fr}.architecture-map{padding:15px;grid-template-columns:repeat(2,1fr)}.legend-note{margin-left:0}.case-workbench{grid-template-columns:225px minmax(0,1fr)}.case-detail{padding:21px}.case-detail h3{font-size:24px}.case-recovery-grid{grid-template-columns:1fr;gap:0}.case-recovery-grid .case-part{margin:16px 0}.lab-grid{gap:25px}.response-steps{grid-template-columns:1fr 1fr}.roadmap{grid-template-columns:1fr 1fr}.topbar>div>span{display:none}}
+@media(max-width:900px){:root{--sidebar:0px}.sidebar{width:100%;position:relative;padding:20px 5%;display:block;border:0;border-bottom:1px solid var(--rule)}.wordmark{font-size:24px}.wordmark small{font-size:8px}.brand-mark{width:32px;height:37px}.sidebar-rule,.sidebar-label,.sidebar-bottom{display:none}.sidebar nav{display:flex;gap:15px;overflow:auto;margin-top:20px;padding-bottom:3px;scrollbar-width:none}.sidebar nav>a{padding:7px 0;flex:0 0 auto;font-size:11px;gap:5px;border-radius:0}.sidebar nav>a.active{background:none;color:var(--orange);border-bottom:1px solid var(--orange)}.sidebar nav>a.active>span{color:var(--orange)}nav>a i{display:none}main{margin:0;padding:0 5%}.topbar{min-height:58px;font-size:9px}.hero{padding-top:44px;gap:30px;grid-template-columns:1.2fr .8fr}.hero-figure{min-height:365px}.figure-top{font-size:8px;letter-spacing:.5px}.figure-top .figure-no{display:none}.figure-path{padding-top:25px}.figure-path b{font-size:17px}.figure-bottom{font-size:10px}.hero-lede{font-size:13px}h1{font-size:48px}.hero-actions{gap:9px}.button{padding:10px 12px;gap:14px;font-size:11px}.intro-grid{gap:22px}.architecture-map{grid-template-columns:repeat(3,1fr)}.architecture-layout{grid-template-columns:1fr}.node-detail{display:grid;grid-template-columns:1fr 1fr;gap:0 25px}.node-detail>.node-detail-head{grid-column:1/-1}.node-detail>.node-related{grid-column:1/-1}.case-workbench{grid-template-columns:210px minmax(0,1fr)}.case-list{max-height:800px}.case-results>span:last-child{display:none}.case-detail h3{font-size:23px}.case-recovery-grid{grid-template-columns:1fr}.lab-grid{grid-template-columns:1fr 1fr}.phase-bars{height:66px}.phase-bar{min-width:40px}.sources-heading .search-field{max-width:300px}}
+@media(max-width:640px){body{font-size:14px}.sidebar{padding:17px 5%}.sidebar nav{gap:17px;margin-top:15px}.wordmark{font-size:23px}.topbar{font-size:8px;letter-spacing:.2px;gap:10px}.topbar .text-button{font-size:10px}.hero{grid-template-columns:1fr;padding:38px 0 30px;gap:30px}.eyebrow{font-size:10px;margin-bottom:21px;letter-spacing:.5px}h1{font-size:47px;letter-spacing:-2px}.hero-lede{font-size:13px;margin-top:21px;max-width:none}.hero-actions{margin:23px 0 18px}.hero-footnote{font-size:9px}.hero-figure{min-height:0;padding:21px}.figure-top{font-size:8px}.figure-top .figure-no{display:inline}.figure-path{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:27px 0}.figure-path>i{display:none}.figure-path>div{display:block}.path-index{display:block;margin-bottom:7px}.figure-path b{font-size:12px;letter-spacing:0}.figure-path small{font-size:7px;letter-spacing:0;margin-top:6px;display:block}.figure-bottom{font-size:9px}.orbit-ring{top:-20px;width:270px;height:270px}.research-strip{padding:19px 0;gap:10px}.research-strip>div{padding-left:10px}.research-strip b{font-size:26px}.research-strip span{font-size:9px;line-height:1.6}.intro-grid{grid-template-columns:1fr;gap:21px;margin-top:28px}.intro-grid article{padding-left:35px}.insight-no{position:absolute;left:0;top:1px}.intro-grid h3{font-size:15px}.intro-grid p{font-size:12px;margin-bottom:8px}.boundary-box>summary{font-size:11px;padding:14px;gap:10px}.boundary-grid{grid-template-columns:1fr;padding:8px 16px 20px;gap:17px}.research-section{padding:39px 0 35px}.section-index{font-size:9px;margin-bottom:13px}.section-heading h2{font-size:29px;letter-spacing:-.6px}.section-heading>p{font-size:12px}.legend{font-size:9px;gap:9px}.legend-note{font-size:8px}.architecture-map{grid-template-columns:repeat(2,1fr);padding:13px;gap:8px}.node-button{min-height:92px;padding:12px}.node-button b{font-size:12px}.node-button small{font-size:9px}.node-detail{display:block;padding:19px}.node-detail h3{font-size:23px}.tab-row>button{padding:11px 13px;font-size:11px}.journey-panel{padding:18px}.journey-top{display:block;margin-bottom:18px}.journey-top h3{font-size:17px}.journey-state{display:inline-block;margin-top:12px;font-size:9px}.phase-bars{height:61px;gap:2px}.phase-bar{min-width:29px;font-size:8px}.phase-bar small{font-size:7px}.journey-bottom{grid-template-columns:1fr;gap:13px}.journey-finding{font-size:11px;padding-left:13px}.protocol-note{gap:10px;font-size:10px}.protocol-note>.tag{font-size:8px}.filter-bar{gap:8px}.filter-bar .search-field{flex-basis:100%;min-width:0}.search-field input{font-size:12px}.filter-bar select{flex:1;min-width:0;font-size:10px;padding-right:12px}.filter-bar .text-button{font-size:10px}.case-workbench{grid-template-columns:1fr}.case-list{display:flex;overflow-x:auto;overflow-y:hidden;max-height:180px;position:relative;top:auto;padding:0 0 7px;gap:8px;scroll-snap-type:x proximity}.case-option{min-width:218px;max-width:218px;scroll-snap-align:start;align-self:stretch}.case-option b{font-size:11px}.case-option small{font-size:9px}.case-detail{padding:19px}.case-detail h3{font-size:24px}.case-meta{font-size:9px;gap:7px}.case-summary{font-size:11px}.case-part p,.case-part li{font-size:11px}.case-part{margin:20px 0}.case-inline-tools{align-items:flex-start}.case-inline-tools .text-button{font-size:10px}.lab-panel{padding:19px}.lab-grid{grid-template-columns:1fr;gap:18px}.lab-result{padding:20px}.lab-main-value{font-size:41px}.lab-assumptions{font-size:10px}.slo-grid{grid-template-columns:1fr}.slo-grid article{padding:20px}.callout{display:block;padding:17px}.callout-label{display:block;margin-bottom:8px}.response-steps{grid-template-columns:1fr;gap:18px}.response-step{padding-top:12px}.response-step h3{font-size:15px}.response-step p{font-size:11px}.roadmap{grid-template-columns:1fr}.roadmap article{padding:18px}.incident-evidence{grid-template-columns:1fr;gap:15px}.incident-evidence article{padding:20px}.sources-heading{display:block}.sources-heading .search-field{max-width:none;margin-top:17px}.source-item>summary{grid-template-columns:31px 1fr;gap:10px}.source-item>summary>.tag{grid-column:2;justify-self:start;font-size:9px}.source-item strong{font-size:11px}.source-body{padding-left:41px}.source-body p{font-size:10px}.source-url{font-size:9px}.glossary{grid-template-columns:1fr;gap:6px;font-size:11px}.glossary dd{margin-bottom:13px}.page-footer{display:block;font-size:9px;padding-bottom:45px}.page-footer>div+div{margin-top:20px}.subsection-heading h3{font-size:23px}table{font-size:10px}td{padding:12px 10px}.back-top{width:32px;height:32px;bottom:16px;right:12px}.expander>summary{font-size:11px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+@media print{@page{size:A4;margin:15mm}body{background:white;font-size:10pt}.sidebar,.topbar,.hero-actions,.filter-bar,.tab-row,.back-top,.case-list,.text-button,.sources-heading .search-field{display:none!important}main{margin:0;padding:0;max-width:none}.hero{padding:15px 0 25px;grid-template-columns:1.3fr 1fr}.hero h1{font-size:34pt}.hero-figure{min-height:300px;print-color-adjust:exact}.research-section{padding:25px 0;break-before:auto}.section-heading h2{font-size:24pt}.case-workbench,.architecture-layout,.lab-grid{grid-template-columns:1fr}.node-detail{display:block}.case-detail{break-inside:auto}.case-detail-header,.case-part,.source-item,.response-step,.roadmap article{break-inside:avoid}.table-wrap{overflow:visible}table{font-size:8pt}td,th{padding:8px}.source-item>summary{font-size:9pt}.source-body{padding-bottom:12px}a{color:inherit}.ref{background:none}.intro-grid{gap:20px}.research-strip{print-color-adjust:exact}.page-footer{padding-bottom:0}.phase-bars,.tag,.lab-result,.slo-grid article{print-color-adjust:exact}}
+
+.panorama{border:1px solid #cdd6ce;background:var(--surface);margin:24px 0 28px;min-width:0}.panorama-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:19px 22px;border-bottom:1px solid var(--rule)}.panorama-head h3{font-family:var(--serif);font-size:23px;margin:3px 0 0}.panorama-kicker{font:9px var(--mono);color:var(--orange);letter-spacing:1.5px}.panorama-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.panorama-tools button{background:transparent;border:1px solid var(--rule);padding:6px 9px;font-size:10px;min-height:32px}.panorama-tools button:hover{background:var(--ink);color:var(--surface)}.panorama-tools output{font:10px var(--mono);color:var(--muted);min-width:37px;text-align:center}.panorama-hint{display:flex;gap:17px;flex-wrap:wrap;padding:10px 22px;font-size:10px;color:var(--muted);background:#f0f2eb}.panorama-hint b{font-weight:500;color:var(--ink)}.panorama-viewport{width:100%;height:680px;max-height:76vh;overflow:auto;background:#f5f6f0;overscroll-behavior:contain;scrollbar-width:thin;position:relative}.panorama-canvas{width:100%;transform-origin:top left}.panorama-svg{width:100%;height:auto;display:block;font-family:var(--sans);color:var(--ink)}.panorama-svg .zone{fill:#edf1e9;stroke:#d5ddd2;stroke-width:1}.panorama-svg .zone.optional{fill:#f3f0e6;stroke:#dacfb9;stroke-dasharray:7 5}.panorama-svg .zone.engine{fill:#e9eff0;stroke:#cad8dc}.panorama-svg .zone.control{fill:#f8eee3;stroke:#d8b99e;stroke-dasharray:7 5}.panorama-svg .zone-label{font:12px var(--mono);fill:#6c7e7f;letter-spacing:1px}.panorama-svg .zone-note{font-size:11px;fill:#69777b}.panorama-svg .svg-node rect{fill:#fffef9;stroke:#b9cfc3;stroke-width:1.5;transition:fill .15s,stroke .15s}.panorama-svg .svg-node.generic rect{fill:#fffaf3;stroke:#d5ae8b;stroke-dasharray:5 3}.panorama-svg .svg-node:hover rect,.panorama-svg .svg-node:focus rect{stroke:var(--orange);stroke-width:2.5}.panorama-svg .svg-node{cursor:pointer;outline:none}.panorama-svg .svg-node.is-selected rect{fill:var(--ink);stroke:var(--ink);stroke-dasharray:none}.panorama-svg .node-title{font-size:15px;font-weight:600;fill:var(--ink)}.panorama-svg .node-sub{font-size:11px;fill:#60766d}.panorama-svg .node-badge{font:9px var(--mono);fill:#668378;letter-spacing:.3px}.panorama-svg .generic .node-badge{fill:#9c6743}.panorama-svg .is-selected .node-title{fill:#fffdf3}.panorama-svg .is-selected .node-sub,.panorama-svg .is-selected .node-badge{fill:#c3d3ce}.panorama-svg .data-edge{stroke:#426d75;stroke-width:2;fill:none;marker-end:url(#architecture-arrow)}.panorama-svg .state-edge{stroke:#3b8875;stroke-width:1.8;fill:none;stroke-dasharray:6 4;marker-end:url(#architecture-state-arrow)}.panorama-svg .control-edge{stroke:#ba7c4e;stroke-width:1.7;fill:none;stroke-dasharray:4 6;marker-end:url(#architecture-control-arrow)}.panorama-svg .edge-label{font-size:11px;fill:#5d737a;paint-order:stroke;stroke:#f5f6f0;stroke-width:5px;stroke-linejoin:round}.panorama-svg .domain-boundary{stroke:#af603d;stroke-width:1.6;fill:none;stroke-dasharray:9 6}.panorama-svg .domain-label{font-size:11px;fill:#9d5434;paint-order:stroke;stroke:#e9eff0;stroke-width:5px}.panorama-detail{border-top:1px solid var(--rule);padding:18px 22px;background:var(--surface);font-size:11px;line-height:1.9}.panorama-detail h4{font-size:14px;display:inline;margin-right:10px}.panorama-detail p{color:var(--muted);margin:8px 0 5px}.panorama-detail .case-jumps{margin-top:9px}.panorama-detail .case-jump{font:10px var(--sans)}.panorama-detail .refs{margin-top:10px}.panorama-note{padding:10px 22px;font-size:10px;color:var(--muted);border-top:1px solid var(--rule)}
+.fault-controls{padding:14px 22px;border-bottom:1px solid var(--rule)}.fault-scene-tabs{display:flex;gap:6px;flex-wrap:wrap}.fault-scene-tabs button,.fault-protection button{background:transparent;border:1px solid var(--rule);padding:6px 9px;font-size:10px}.fault-scene-tabs button[aria-pressed=true]{color:var(--surface);background:var(--ink);border-color:var(--ink)}.fault-protection{display:flex;align-items:center;gap:6px;margin-top:11px;font-size:10px;color:var(--muted)}.fault-protection button[aria-pressed=true]{background:var(--pale-teal);border-color:#94b5a4;color:var(--teal)}.fault-protection .fault-mode-label{margin-right:5px}.fault-svg .fault-edge{stroke:#c67d5b;stroke-width:2;fill:none;marker-end:url(#fault-arrow);transition:opacity .2s}.fault-svg .fault-edge.feedback{stroke:#b34c31;stroke-width:2.5;stroke-dasharray:8 5;marker-end:url(#fault-loop-arrow)}.fault-svg .fault-edge.dim{opacity:.09}.fault-svg .fault-edge.blocked{stroke:#4b8c73;stroke-dasharray:3 7;opacity:.55;marker-end:url(#fault-break-arrow)}.fault-svg .fault-node rect{fill:#fffdf7;stroke:#d9ba9d;stroke-width:1.5;transition:opacity .2s,fill .2s}.fault-svg .fault-node.trigger rect{fill:#f9eee3}.fault-svg .fault-node.resource rect{fill:#f4f1e6}.fault-svg .fault-node.outcome rect{fill:#f8e7dd;stroke:#c18c6b}.fault-svg .fault-node.amplifier rect{fill:#a95132;stroke:#a95132}.fault-svg .amplifier .node-title,.fault-svg .amplifier .node-sub,.fault-svg .amplifier .node-badge{fill:#fff9ec}.fault-svg .fault-node.guard rect{fill:#e3eee5;stroke:#82a88f}.fault-svg .fault-node.guard .node-title{fill:#275e4e}.fault-svg .fault-node.dim{opacity:.26}.fault-svg .fault-node:hover{opacity:1}.fault-svg .fault-node.is-selected rect{stroke:var(--ink);stroke-width:3;fill:#e4eadd}.fault-svg .fault-node.is-selected .node-title{fill:var(--ink)}.fault-svg .fault-node.is-selected .node-sub,.fault-svg .fault-node.is-selected .node-badge{fill:#5d7468}.fault-svg .guard-bolt{font:22px var(--sans);fill:#24684f;paint-order:stroke;stroke:#f5f6f0;stroke-width:6px}.fault-svg .guard-line{stroke:#82a88f;stroke-width:1.5;stroke-dasharray:3 4;fill:none}.fault-matrix-expander{margin-bottom:28px}.fault-matrix{font-size:10px;min-width:1050px}.fault-matrix th{text-align:center;white-space:normal;min-width:52px}.fault-matrix th:first-child{text-align:left;min-width:280px;position:sticky;left:0;z-index:1;background:#edeee7}.fault-matrix td{min-width:40px;text-align:center;padding:9px 6px}.fault-matrix td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}.fault-matrix .case-jump{font:10px var(--sans);border:0;padding:3px 0;text-align:left}.matrix-dot{color:var(--teal);font-size:15px}.matrix-note{font-size:10px;color:var(--muted);margin:12px 0}
+.atlas-dialog{width:100vw;height:100vh;max-width:100vw;max-height:100vh;margin:0;padding:18px;border:0;background:var(--paper);overflow:hidden}.atlas-dialog::backdrop{background:rgba(13,31,40,.7)}.atlas-dialog .panorama{margin:0;height:100%;display:flex;flex-direction:column}.atlas-dialog .panorama-viewport{height:auto;max-height:none;flex:1;min-height:0}.atlas-dialog .panorama-detail{max-height:190px;overflow:auto}.atlas-dialog .panorama-note{display:none}.atlas-dialog .panorama-head{padding-block:13px}.atlas-dialog .fault-controls{padding-block:10px}.atlas-dialog .panorama-detail p{margin:5px 0}.architecture-layout{align-items:start}.node-detail{align-self:start;position:sticky;top:20px}
+.fault-svg .fault-edge.blocked.dim{opacity:.08}
+.panorama-note a{color:var(--teal);border-bottom:1px solid #adc2b7;margin-left:5px}
+@media(max-width:900px){.panorama-viewport{height:600px}.node-detail{position:static}.panorama-head{padding:16px}.panorama-head h3{font-size:21px}.panorama-hint{padding:10px 16px;gap:10px}.panorama-tools{gap:4px}.panorama-tools button{font-size:9px;padding:6px}.panorama-detail{padding:16px}.fault-controls{padding:13px 16px}.fault-scene-tabs button,.fault-protection button{font-size:9px}}
+@media(max-width:640px){.panorama{margin-top:20px}.panorama-head{display:block;padding:16px}.panorama-head h3{font-size:22px}.panorama-tools{margin-top:12px;justify-content:flex-start;gap:7px}.panorama-tools button{font-size:10px;padding:6px 9px;min-height:34px}.panorama-viewport{height:470px;max-height:65vh}.panorama-hint{font-size:9px;line-height:1.8}.panorama-detail h4{font-size:13px;display:block;margin-bottom:6px}.panorama-detail{font-size:10px}.panorama-detail .case-jump{font-size:9px}.panorama-note{font-size:9px;padding:11px 16px}.fault-scene-tabs{gap:5px}.fault-scene-tabs button{font-size:9px;padding:6px 8px}.fault-protection{flex-wrap:wrap}.atlas-dialog{padding:6px}.atlas-dialog .panorama-head{padding:12px}.atlas-dialog .panorama-head h3{font-size:17px}.atlas-dialog .panorama-tools{margin-top:8px}.atlas-dialog .panorama-detail{max-height:150px;padding:12px}.atlas-dialog .panorama-hint{display:none}.atlas-dialog .fault-controls{padding:9px 12px}.atlas-dialog .panorama-tools button{min-height:30px}}
+@media print{.panorama-viewport{height:auto!important;max-height:none;overflow:visible}.panorama-canvas{width:100%!important}.panorama-head,.panorama-detail{break-inside:avoid}.panorama-tools,.fault-controls{display:none}.panorama-svg{print-color-adjust:exact}.panorama{break-inside:avoid}.node-detail{position:static}.fault-matrix{min-width:0;font-size:6pt}.fault-matrix th:first-child{min-width:130px}.fault-matrix th{min-width:15px}.fault-matrix td{min-width:15px;padding:5px 2px}.fault-matrix .case-jump{font-size:6pt}}
+</style>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+  <aside class="sidebar" aria-label="研究目录">
+    <a class="wordmark" href="#overview"><span class="brand-mark" aria-hidden="true">d<span>↗</span></span><span>DeepSeek<small>RELIABILITY ATLAS</small></span></a>
+    <div class="sidebar-rule"></div>
+    <p class="sidebar-label">一份关于恢复能力的研究</p>
+    <nav id="main-nav">
+      <a href="#overview" class="active"><span>00</span>研究总览</a>
+      <a href="#architecture"><span>01</span>架构与故障域</a>
+      <a href="#lifecycle"><span>02</span>请求生命周期</a>
+      <a href="#incidents"><span>03</span>故障处置库<i id="nav-case-count">28</i></a>
+      <a href="#lab"><span>04</span>容量与级联实验</a>
+      <a href="#observability"><span>05</span>观测与 SLO</a>
+      <a href="#recovery"><span>06</span>恢复与预防</a>
+      <a href="#evidence"><span>07</span>证据与来源</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <span class="tiny-kicker">RESEARCH SNAPSHOT</span>
+      <strong>2026.11.05</strong>
+      <p>官方披露 · 参考机制 · 工程推演<br>分开阅读，交叉验证。</p>
+      <a href="research.md">完整文字稿 ↗</a>
+    </div>
+  </aside>
+  <main id="main">
+    <div class="topbar"><span>DEEPSEEK / API SERVICE RELIABILITY</span><div><span>中文研究版 · Asia/Shanghai</span><button id="print-page" class="text-button" type="button">打印 / PDF ↗</button></div></div>
+    <section id="overview" class="hero section-anchor">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="rule"></span> 从架构理解故障，从证据走向恢复</div>
+        <h1>让一次请求，<br><em>完整地结束。</em></h1>
+        <p class="hero-lede">以 DeepSeek 为锚点，深入模型 API 平台的计算、状态与故障边界。重点回答：<strong>哪里会坏、为什么坏、怎样恢复、如何预防。</strong></p>
+        <div class="hero-actions"><a href="#incidents" class="button primary">按症状开始排查 <span>↗</span></a><a href="#architecture" class="button quiet">先看完整链路 <span>↓</span></a></div>
+        <div class="hero-footnote">截至 2026-11-05 的公开资料研究 · 未接入生产系统 · 非官方运维手册</div>
+      </div>
+      <div class="hero-figure" role="img" aria-label="稳定性需要同时保证新请求、在途生成、业务结果和状态一致性">
+        <div class="figure-top"><span>RECOVERY IS A VECTOR</span><span class="figure-no">FIG. 01</span></div>
+        <div class="orbit-ring"></div>
+        <div class="figure-path">
+          <div><span class="path-index">01</span><b>请求被接住</b><small>admission</small></div>
+          <i aria-hidden="true"></i>
+          <div><span class="path-index">02</span><b>生成有进度</b><small>progress</small></div>
+          <i aria-hidden="true"></i>
+          <div><span class="path-index">03</span><b>结果可使用</b><small>completion</small></div>
+          <i aria-hidden="true"></i>
+          <div><span class="path-index">04</span><b>状态可核对</b><small>consistency</small></div>
+        </div>
+        <div class="figure-bottom">探针变绿，只是恢复证据的一部分。<span>↗</span></div>
+      </div>
+    </section>
+    <div class="research-strip" aria-label="研究内容规模"><div><b id="case-stat">28</b><span>典型故障剧本</span></div><div><b id="source-stat">34</b><span>一手资料来源</span></div><div><b>06</b><span>请求生命周期场景</span></div><div><b>03</b><span>机制交互实验</span></div></div>
+    <div class="intro-grid">
+      <article><span class="insight-no">I.</span><h3>管理工作量，而不只是 QPS</h3><p>请求长度、缓存、输出预算与健康容量一起决定压力。流量不变，也可能突然过载。</p><a href="#lab">亲手改变假设 ↗</a></article>
+      <article><span class="insight-no">II.</span><h3>恢复新请求，也要处理在途状态</h3><p>流中断、KV 交接、取消、工具副作用各有边界。重新生成不等于原样续写。</p><a href="#lifecycle">拆开一条请求 ↗</a></article>
+      <article><span class="insight-no">III.</span><h3>每份结论，都有适用范围</h3><p>当前部署披露、历史实现、参考框架和处置建议分层标记。公开故障的根因不补写。</p><a href="#evidence">核对证据边界 ↗</a></article>
+    </div>
+    <details class="boundary-box"><summary><span class="tag official">研究边界</span> 这份研究能确认什么，哪些仍未公开？<span class="plus">＋</span></summary><div id="boundaries" class="boundary-grid"></div></details>
+
+    <section id="architecture" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">01 / SYSTEM</div><h2>一条请求，多重故障域。</h2><p>点击组件，查看职责、持有状态、耦合风险与关联处置卡。实线主链路是简化表达；接入和控制面内部拆分属于通用补充，未冒充官方拓扑。</p></header>
+      <div class="legend"><span><i class="dot teal"></i> 官方推理机制 / 软件职责</span><span><i class="dot amber"></i> 通用补充 / 内部实现未公开</span><span class="legend-note">当前锚点：V4.1 Flash Q&A · 历史对照：V3/R1</span></div>
+      <div id="architecture-panorama" class="panorama" aria-label="架构全景图"></div>
+      <div class="architecture-layout">
+        <div class="architecture-map" id="architecture-map" aria-label="可选择的架构组件"></div>
+        <article id="node-detail" class="node-detail" aria-live="polite"></article>
+      </div>
+      <details class="expander"><summary>进一步看：每项效率收益，都新增一项可靠性责任 <span>＋</span></summary><div id="tradeoffs" class="table-wrap"></div></details>
+    </section>
+
+    <section id="lifecycle" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">02 / REQUEST JOURNEY</div><h2>看见真正停住的那一段。</h2><p>改变场景，观察同一个“慢请求”背后的不同机制。以下时长都是教学示意，不是 DeepSeek 线上测量。</p></header>
+      <div class="tab-row" id="scenario-tabs" role="tablist" aria-label="请求生命周期场景"></div>
+      <div id="scenario-panel" class="journey-panel" role="tabpanel" aria-live="polite"></div>
+      <div class="protocol-note"><span class="tag contract">API 契约</span><p><b>Chat 与 Responses 的结束方式不同。</b> Chat 流使用 <code>[DONE]</code>；Responses 使用 <code>response.completed / incomplete / failed</code>。解析器必须按端点处理。终态还要结合 <code>finish_reason</code> 与任务验证。 <a href="#source-S13" class="ref">S13</a> <a href="#source-S16" class="ref">S16</a></p></div>
+    </section>
+
+    <section id="incidents" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">03 / FAILURE FIELD GUIDE</div><h2>从现象出发，走到可验收的恢复。</h2><p>这些是基于公开机制的故障推演，不是 DeepSeek 历史事故列表。时间顺序用于组织行动，不承诺固定分钟数恢复。需要平台内部权限的动作与调用方可做的事分别说明。</p></header>
+      <div id="failure-panorama" class="panorama" aria-label="故障传播全景图"></div>
+      <details class="expander fault-matrix-expander"><summary>故障覆盖矩阵：28 类故障 × 13 个组件触点 <span>＋</span></summary><div id="fault-matrix" class="table-wrap"></div></details>
+      <div class="filter-bar">
+        <label class="search-field"><span aria-hidden="true">⌕</span><input id="case-search" type="search" placeholder="搜索现象、机制、错误码，例如：KV、429、取消" aria-label="搜索故障库"><kbd>/</kbd></label>
+        <label class="sr-only" for="symptom-filter">按症状筛选</label><select id="symptom-filter"><option value="all">全部症状</option><option value="latency">首输出慢</option><option value="stall">持续输出卡顿</option><option value="capacity">容量与状态压力</option><option value="error">拒绝与错误</option><option value="stream">流中断 / 网络</option><option value="contract">协议与任务结果</option></select>
+        <label class="sr-only" for="layer-filter">按组件筛选</label><select id="layer-filter"><option value="all">全部组件</option></select>
+        <button class="text-button" id="reset-filters" type="button">重置</button>
+      </div>
+      <div class="case-results"><span id="case-count" aria-live="polite"></span><span>先证伪，再操作。恢复后要验证，不能只看指标变绿。</span></div>
+      <div class="case-workbench"><div id="case-list" class="case-list" aria-label="故障条目"></div><article id="case-detail" class="case-detail" aria-live="polite"></article></div>
+    </section>
+
+    <section id="lab" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">04 / MECHANISM LAB</div><h2>负载没变，为什么还是扛不住？</h2><p>三个可手算的教学模型，帮助理解工作量、重试和故障余量。所有输入均为假设，不代表 DeepSeek 实测容量，也不能据此估算某型号 GPU 数量。</p></header>
+      <div class="tab-row" id="lab-tabs" role="tablist" aria-label="交互实验"><button role="tab" id="lab-tab-workload" aria-controls="lab-panel" aria-selected="true" data-lab="workload">01 请求与缓存工作量</button><button role="tab" id="lab-tab-retry" aria-controls="lab-panel" aria-selected="false" data-lab="retry">02 重试放大</button><button role="tab" id="lab-tab-capacity" aria-controls="lab-panel" aria-selected="false" data-lab="capacity">03 整实例 N−1 容量</button></div>
+      <div id="lab-panel" class="lab-panel" role="tabpanel" aria-labelledby="lab-tab-workload"></div>
+    </section>
+
+    <section id="observability" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">05 / OBSERVABILITY</div><h2>把“服务正常”，写成可检查的条件。</h2><p>下面是建议的观测语义，不是 DeepSeek 内部实际指标名。阈值要根据任务、工作量和压测确定；没有适用于所有模型的通用百分比。</p></header>
+      <div id="slo-grid" class="slo-grid"></div>
+      <div class="callout"><span class="callout-label">最小诊断上下文</span><p>稳定匿名租户、模型/别名与可见版本、模板/适配器版本、输入/输出/缓存计数、阶段时间、重试序号、终态分类、工具业务状态。高基数请求 ID 放 trace 或受控日志；API key、原始提示词、思考内容和工具敏感参数不进普通指标。</p></div>
+      <details class="expander" open><summary>14 项观测：它证明什么，又需要配合什么？ <span>＋</span></summary><div id="metrics-table" class="table-wrap"></div></details>
+    </section>
+
+    <section id="recovery" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">06 / RESTORE & PREVENT</div><h2>先切断放大，再恢复最小故障域。</h2><p>一次恢复至少有四个目标：新请求能完成、在途结果有明确状态、业务副作用可核对、孤儿计算与计量缺口可收敛。各自设验收，不相互替代。</p></header>
+      <div id="response-steps" class="response-steps"></div>
+      <div class="subsection-heading"><h3>让演练证明退路存在。</h3><p>在已授权的隔离环境验证下列场景。本网页不执行故障注入，不连接任何集群。</p></div>
+      <div id="drills-table" class="table-wrap"></div>
+      <div class="subsection-heading"><h3>从零建设：按证据和恢复能力排序。</h3><p>这里的 P0 / P1 / P2 是建设优先级建议，不是对某次事故的定级。</p></div>
+      <div id="roadmap" class="roadmap"></div>
+    </section>
+
+    <section id="evidence" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">07 / EVIDENCE REGISTER</div><h2>让每一层确定性，都有出处。</h2><p>公开状态页只能证明已披露影响，不能反推内部技术根因。动态文档以研究日为快照；关键部署 Q&A 固定到 2026-11-03 的 commit。</p></header>
+      <div class="incident-evidence">
+        <article><span class="tag incident">真实公开事件</span><h3>2026.10.15</h3><p class="incident-time">北京时间 08:11—13:04</p><p>官方页面显示持续 4 小时 52 分。端点是分钟级显示，不据此重算更精确时长。记录涉及 API / 聊天服务退化。</p><strong>技术根因：未公开。</strong><a href="#source-S18" class="ref">S18</a></article>
+        <article><span class="tag incident">真实公开事件</span><h3>2026.09.20</h3><p class="incident-time">北京时间 16:45—16:58</p><p>官方页面记录 Flash 服务退化 13 分钟。历史组件名称可能随后续服务命名更新，不能据此倒推当时版本。</p><strong>技术根因：未公开。</strong><a href="#source-S19" class="ref">S19</a></article>
+      </div>
+      <details class="expander"><summary>主张台账：哪些是披露，哪些是参考与推演？ <span>＋</span></summary><div id="claims-table" class="table-wrap"></div></details>
+      <div class="sources-heading"><h3>一手资料来源</h3><label class="search-field"><span aria-hidden="true">⌕</span><input id="source-search" type="search" placeholder="检索来源、项目或适用范围" aria-label="检索来源"></label></div>
+      <div id="source-list" class="source-list"></div>
+      <details class="expander"><summary>术语速查 <span>＋</span></summary><dl id="glossary" class="glossary"></dl></details>
+    </section>
+    <footer class="page-footer"><div><b>DEEPSEEK / RELIABILITY ATLAS</b><p>研究的价值，在于下一次故障时，能少一次误判。</p></div><div><p>研究快照 · 2026-11-05 · Asia/Shanghai</p><a href="research.md">完整文字稿</a> · <a href="sources.json">结构化来源</a> · <a href="README.md">使用与复现</a></div></footer>
+  </main>
+  <a class="back-top" href="#overview" aria-label="回到顶部">↑</a>
+  <noscript><div class="noscript">本页交互需要 JavaScript。也可打开同目录 <a href="research.md">完整文字稿</a> 阅读全部研究。</div></noscript>
+  <script>(function (root, factory) {
+  const api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;
+  else root.ResearchCore = api;
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  "use strict";
+  function finite(value, name, min, max = Infinity) {
+    if (!Number.isFinite(value) || value < min || value > max)
+      throw new RangeError(`${name} must be between ${min} and ${max}`);
+    return value;
+  }
+  function retryAmplification(p, retries, layers = 1) {
+    finite(p, "failureRate", 0, 1);
+    finite(retries, "retries", 0, 10);
+    finite(layers, "layers", 1, 3);
+    if (!Number.isInteger(retries) || !Number.isInteger(layers))
+      throw new RangeError("retries and layers must be integers");
+    let attempts = 0;
+    for (let i = 0; i <= retries; i++) attempts += p ** i;
+    return attempts ** layers;
+  }
+  function workload(input) {
+    const { rps, inputTokens, hitRate, seconds, outputTokens,
+      failureRate = 0, retries = 0, layers = 1 } = input;
+    finite(rps, "rps", 0);
+    finite(inputTokens, "inputTokens", 0);
+    finite(hitRate, "hitRate", 0, 1);
+    finite(seconds, "seconds", 0);
+    finite(outputTokens, "outputTokens", 0);
+    const amplification = retryAmplification(failureRate, retries, layers);
+    const effectiveRps = rps * amplification;
+    return {
+      amplification, effectiveRps,
+      inputTps: effectiveRps * inputTokens * (1 - hitRate),
+      outputTps: effectiveRps * outputTokens,
+      concurrency: effectiveRps * seconds
+    };
+  }
+  function nMinusOne({ instances, perInstance, load, target, warmSeconds }) {
+    finite(instances, "instances", 1, 100);
+    if (!Number.isInteger(instances)) throw new RangeError("instances must be an integer");
+    finite(perInstance, "perInstance", 0.001);
+    finite(load, "load", 0);
+    finite(target, "target", 0.01, 1);
+    finite(warmSeconds, "warmSeconds", 0);
+    const failureHardCapacity = (instances - 1) * perInstance;
+    const failureBudget = failureHardCapacity * target;
+    return {
+      normalBudget: instances * perInstance * target,
+      failureHardCapacity, failureBudget,
+      margin: failureBudget - load,
+      withinBudget: load <= failureBudget,
+      backlog: Math.max(0, load - failureHardCapacity) * warmSeconds
+    };
+  }
+  function filterCases(cases, { query = "", symptom = "all", layer = "all" } = {}) {
+    const needle = query.trim().toLocaleLowerCase();
+    return cases.filter(item => {
+      if (symptom !== "all" && item.symptom !== symptom) return false;
+      if (layer !== "all" && !item.layers.includes(layer)) return false;
+      if (!needle) return true;
+      return [item.id, item.title, item.summary, ...(item.tags || []),
+        ...(item.signals || []), ...(item.mechanism || [])]
+        .join(" ").toLocaleLowerCase().includes(needle);
+    });
+  }
+  function completion({ protocol, terminal, finishReason, parsed = true }) {
+    if (["insufficient_system_resource", "aborted", "content_filter"].includes(finishReason)
+        || ["response.failed", "response.incomplete"].includes(terminal))
+      return { state: "failed", label: "终态失败 / 策略终止" };
+    const ended = protocol === "responses"
+      ? terminal === "response.completed" : terminal === "[DONE]";
+    if (!ended) return { state: "incomplete", label: "未证实完整结束" };
+    if (!parsed) return { state: "invalid", label: "协议完成，结果不可用" };
+    if (finishReason === "length") return { state: "truncated", label: "长度预算耗尽" };
+    return { state: "complete", label: "协议完整；业务仍需验收" };
+  }
+  return { retryAmplification, workload, nMinusOne, filterCases, completion };
+});
+</script>
+  <script>globalThis.RESEARCH = {
+  date: "2026-11-05",
+  timezone: "Asia/Shanghai",
+  title: "DeepSeek API 稳定性研究台",
+  sources: [
+    {id:"S01",title:"DeepInfer · 公开范围与推理核心",owner:"DeepSeek",kind:"official",date:"核验 2026-11-05",url:"https://github.com/deepseek-ai/DeepInfer",scope:"生产引擎定位；公开版本目前仅离线核心，缺少在线缓存、E/P/D 分离及 DP 均衡。",limit:"不能仅凭开源仓库重建完整在线 API。"},
+    {id:"S02",title:"V4.1 Flash Deployment Q&A · v0.2",owner:"DeepSeek",kind:"official",date:"2026-11-03 · 固定 commit",url:"https://github.com/deepseek-ai/DeepInfer/blob/a679bb86ce36e883a98a97733492b686e5b9a08e/doc/inference_deployment_qa.md",scope:"阶段分离、分级缓存、EP 故障域及扩缩容等部署披露。",limit:"仅代表文档对应部署；处置剧本与全公司架构不是官方披露。"},
+    {id:"S03",title:"V3/R1 Inference System Overview",owner:"DeepSeek",kind:"history",date:"2025-03-01 · 历史快照",url:"https://github.com/deepseek-ai/open-infra-index/blob/3122a25220273cb0806f591e52c4171bd869d8ad/202502OpenSourceWeek/day_6_one_more_thing_deepseekV3R1_inference_system_overview.md",scope:"历史 H800 集群、P/D 分离和专家并行设计。",limit:"历史硬件、吞吐、成本不能当作当前承诺，也不能与新版本随意拼接。"},
+    {id:"S04",title:"DeepEP · MoE 通信",owner:"DeepSeek",kind:"official",date:"核验 2026-11-05",url:"https://github.com/deepseek-ai/DeepEP",scope:"MoE Token dispatch/combine、NVLink/RDMA 及 all-to-all 通信。",limit:"通信性能优化不构成服务可用性承诺；V1/V2 配置不同。"},
+    {id:"S05",title:"EPLB · Expert Parallelism Load Balancer",owner:"DeepSeek",kind:"official",date:"核验 2026-11-05",url:"https://github.com/deepseek-ai/EPLB",scope:"热点专家副本与拓扑感知放置。",limit:"专家副本用于负载均衡，不等于完整服务备用实例。"},
+    {id:"S06",title:"FlashMLA · Attention kernels",owner:"DeepSeek",kind:"official",date:"核验 2026-11-05",url:"https://github.com/deepseek-ai/FlashMLA",scope:"专用 MLA 内核及硬件、软件兼容边界。",limit:"不能推导所有 GPU、模型与形状都可用。"},
+    {id:"S07",title:"DeepGEMM · FP8 / grouped GEMM",owner:"DeepSeek",kind:"official",date:"核验 2026-11-05",url:"https://github.com/deepseek-ai/DeepGEMM",scope:"矩阵计算、JIT 与兼容性测试依据。",limit:"内核机制不能证明 DeepSeek 发生过数值或编译事故。"},
+    {id:"S08",title:"3FS · Fire-Flyer File System",owner:"DeepSeek",kind:"official",date:"核验 2026-11-05",url:"https://github.com/deepseek-ai/3FS",scope:"面向训练和推理的分布式存储；客户端/服务端版本兼容提示。",limit:"开源存储能力不等于 API 状态一致性或缓存持久性保证。"},
+    {id:"S09",title:"deepseek-recipe · 协议编码与输出解析",owner:"DeepSeek",kind:"official",date:"核验 2026-11-05",url:"https://github.com/deepseek-ai/deepseek-recipe",scope:"输入编码、解码、响应格式和工具/思考内容解析。",limit:"不是完整网关、账户、安全或计费实现。"},
+    {id:"S10",title:"DualPipe · 训练与在线路径边界",owner:"DeepSeek",kind:"official",date:"核验 2026-11-05",url:"https://github.com/deepseek-ai/DualPipe",scope:"训练阶段计算与通信重叠。",limit:"本研究不将训练算法画进 API 在线推理路径。"},
+    {id:"S11",title:"Rate Limit · 并发、隔离与保活",owner:"DeepSeek API",kind:"contract",date:"核验 2026-11-05",url:"https://api-docs.deepseek.com/quick_start/rate_limit/",scope:"账户并发、user_id 隔离；排队保活与未开始推理时的连接关闭。",limit:"限额会变；并发额度不是固定 QPS、吞吐或延迟保证。"},
+    {id:"S12",title:"Error Codes",owner:"DeepSeek API",kind:"contract",date:"核验 2026-11-05",url:"https://api-docs.deepseek.com/quick_start/error_codes/",scope:"400/401/402/422/429/500/503 等错误分类。",limit:"仅凭状态码无法确定内部故障层级。"},
+    {id:"S13",title:"Chat Completions · 响应与终态",owner:"DeepSeek API",kind:"contract",date:"核验 2026-11-05",url:"https://api-docs.deepseek.com/api/create-chat-completion/",scope:"增量响应、finish_reason、usage、工具交接及长度/资源/中止终态。",limit:"HTTP 成功和 stop 本身不能证明业务任务成功。"},
+    {id:"S14",title:"Context Caching",owner:"DeepSeek API",kind:"contract",date:"核验 2026-11-05",url:"https://api-docs.deepseek.com/guides/kv_cache/",scope:"前缀计算复用及 hit/miss Token 用量。",limit:"不等于答案缓存；不保证每次命中或会话持久恢复。"},
+    {id:"S15",title:"Thinking Mode · 多轮工具协议",owner:"DeepSeek API",kind:"contract",date:"核验 2026-11-05",url:"https://api-docs.deepseek.com/guides/thinking_mode/",scope:"思考模式与工具轮次的历史消息要求。",limit:"工具由客户端执行，模型响应不提供业务恰好一次保证。"},
+    {id:"S16",title:"Responses API · 兼容范围",owner:"DeepSeek API",kind:"contract",date:"核验 2026-11-05",url:"https://api-docs.deepseek.com/guides/responses_api/",scope:"无状态兼容、不支持字段及独立终止事件。",limit:"不能把相似接口名称理解成相同状态、存储或后台执行能力。"},
+    {id:"S17",title:"API Updates · 模型别名与版本",owner:"DeepSeek API",kind:"contract",date:"2026-10-17 条目等",url:"https://api-docs.deepseek.com/updates/",scope:"V4.1 Flash 发布及后续别名更新记录。",limit:"更新记录不意味着 API 允许任意旧版本固定或回滚。"},
+    {id:"S18",title:"公开事件 · 2026-10-15",owner:"DeepSeek Status",kind:"incident",date:"2026-10-15",url:"https://status.deepseek.com/incidents/7116348214287",scope:"官方记录的服务退化、事件时间及恢复更新。",limit:"未披露技术根因；不能归因为 GPU、缓存或调度。"},
+    {id:"S19",title:"公开事件 · 2026-09-20",owner:"DeepSeek Status",kind:"incident",date:"2026-09-20",url:"https://status.deepseek.com/incidents/7007335047287",scope:"Flash 服务退化 13 分钟的公开记录。",limit:"无公开技术 RCA；历史组件名称可能随当前命名更新。"},
+    {id:"S20",title:"vLLM · Production Metrics",owner:"vLLM",kind:"reference",date:"stable · 核验 2026-11-05",url:"https://docs.vllm.ai/en/stable/usage/metrics/",scope:"排队、TTFT、ITL、KV、抢占等参考观测量。",limit:"不代表 DeepSeek 使用 vLLM；指标名应按实际版本核对。"},
+    {id:"S21",title:"vLLM · Optimization and Tuning",owner:"vLLM",kind:"reference",date:"stable · 核验 2026-11-05",url:"https://docs.vllm.ai/en/stable/configuration/optimization/",scope:"KV 抢占重算、分块 Prefill 与批量预算取舍。",limit:"本研究只借鉴机制，不提供可直接套到 DeepSeek 的参数。"},
+    {id:"S22",title:"SGLang · PD Disaggregation",owner:"SGLang",kind:"reference",date:"核验 2026-11-05",url:"https://docs.sglang.io/docs/advanced_features/pd_disaggregation",scope:"阶段分离、状态传输及资源预留取舍。",limit:"不是 DeepSeek 内部选型证据。"},
+    {id:"S23",title:"DistServe · OSDI 2024",owner:"论文作者",kind:"paper",date:"2024",url:"https://arxiv.org/abs/2401.09670",scope:"TTFT/TPOT 双目标与通信约束下的阶段分离研究。",limit:"实验吞吐收益不应外推成任何平台容量承诺。"},
+    {id:"S24",title:"PagedAttention · SOSP 2023",owner:"论文作者",kind:"paper",date:"2023",url:"https://arxiv.org/abs/2309.06180",scope:"动态 KV 状态与内存管理的原始研究。",limit:"不能给 DeepSeek MLA 直接套传统 MHA 每 Token 显存公式。"},
+    {id:"S25",title:"Google SRE · Handling Overload",owner:"Google",kind:"reference",date:"SRE Book",url:"https://sre.google/sre-book/handling-overload/",scope:"不同请求成本、过载保护、重试预算及多层放大。",limit:"具体阈值要结合本平台工作量、SLO 与压测确定。"},
+    {id:"S26",title:"Dynamo v1.6.1 · Request Migration",owner:"NVIDIA",kind:"reference",date:"固定文档版本 v1.6.1",url:"https://docs.nvidia.com/dynamo/v1.6.1/kubernetes/fault-tolerance/request-migration",scope:"请求迁移、Token 状态重放及能力限制。",limit:"默认关闭；guided/JSON schema 和 n>1 等不受支持；不能推出普适续写。"},
+    {id:"S27",title:"Dynamo v1.6.1 · Graceful Shutdown",owner:"NVIDIA",kind:"reference",date:"固定文档版本 v1.6.1",url:"https://docs.nvidia.com/dynamo/v1.6.1/kubernetes/fault-tolerance/graceful-shutdown",scope:"摘流、排空、终止超时与清理顺序。",limit:"不能视为 DeepSeek 已实现的具体控制流程。"},
+    {id:"S28",title:"Dynamo v1.6.1 · Cancellation Architecture",owner:"NVIDIA",kind:"reference",date:"固定文档版本 v1.6.1",url:"https://docs.nvidia.com/dynamo/v1.6.1/knowledge-base/concepts/fault-tolerance/request-cancellation-architecture",scope:"取消信号传播和实际引擎中止的区别。",limit:"cancel_received 计数不能证明计算停止或 KV 回收。"},
+    {id:"S29",title:"Dynamo v1.6.1 · Request Rejection",owner:"NVIDIA",kind:"reference",date:"固定文档版本 v1.6.1",url:"https://docs.nvidia.com/dynamo/v1.6.1/kubernetes/fault-tolerance/request-rejection",scope:"按不同资源维度拒绝过载的参考设计。",limit:"其 HTTP 529 等实现细节不是 DeepSeek API 契约。"},
+    {id:"S30",title:"Dynamo · KV-Aware Routing",owner:"NVIDIA",kind:"reference",date:"核验 2026-11-05",url:"https://docs.nvidia.com/dynamo/knowledge-base/concepts/system-architecture/kv-aware-routing",scope:"同时权衡缓存局部性和活跃负载。",limit:"缓存路由与专家路由是不同层级；不是 DeepSeek 选型证明。"},
+    {id:"S31",title:"Dynamo · Fault Tolerance Testing",owner:"NVIDIA",kind:"reference",date:"核验 2026-11-05",url:"https://docs.nvidia.com/dynamo/latest/knowledge-base/concepts/fault-tolerance/fault-tolerance-testing",scope:"取消、迁移、GPU、网络等测试范畴。",limit:"演练只能在已授权隔离环境执行；本页面不连接系统。"},
+    {id:"S32",title:"Dynamo · Architecture",owner:"NVIDIA",kind:"reference",date:"核验 2026-11-05",url:"https://docs.nvidia.com/dynamo/knowledge-base/concepts/architecture",scope:"请求、发现、事件等通信平面划分。",limit:"用于说明故障模式，不推断 DeepSeek 使用 etcd/NATS 等组件。"},
+    {id:"S33",title:"NCCL · Troubleshooting",owner:"NVIDIA",kind:"reference",date:"核验 2026-11-05",url:"https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/troubleshooting.html",scope:"GPU 拓扑、网络、通信和运行时的分层诊断。",limit:"参考诊断方法；DeepEP 不能被等同为 NCCL。"},
+    {id:"S34",title:"3FS · Design Notes",owner:"DeepSeek",kind:"official",date:"核验 2026-11-05",url:"https://github.com/deepseek-ai/3FS/blob/main/docs/design_notes.md",scope:"存储/元数据职责、复制与恢复的设计依据。",limit:"存储复制语义不能自动覆盖生成状态和业务动作。"}
+  ],
+  boundaries: [
+    {title:"当前部署披露 ≠ 整家公司完整拓扑",text:"当前锚点是 V4.1 Flash Q&A。API 网关产品、地域数量、计费库与安全系统内部拓扑未公开，不补画厂商名称。",sources:["S01","S02"]},
+    {title:"历史版本 ≠ 当前 API 承诺",text:"V3/R1 的 2025 资料只作历史对照；不把旧 H800 规模、成本和新版本机制拼成一张“当前全景”。",sources:["S03","S17"]},
+    {title:"公开设计 ≠ 已完整开源",text:"DeepInfer 公开范围不足以重现生产 API；参考框架用来解释机制，不代表 DeepSeek 采用它们。",sources:["S01","S20","S32"]},
+    {title:"故障剧本 ≠ 已发生事故",text:"处置卡是基于公开机制的工程推演。真实状态事件只陈述已披露的影响与时间，技术根因留白。",sources:["S18","S19"]}
+  ],
+  nodes: [
+    {id:"edge",n:"01",name:"API 入口",sub:"连接 · 鉴权 · 配额",kind:"inference",group:"接入与协议",responsibility:"承接 TLS/HTTP/SSE，识别账户与用户，执行参数和配额检查。API 契约存在，内部网关与依赖拆分未公开。",state:"连接、身份、deadline、租户并发与请求标识。",coupling:"共享鉴权或计费依赖若同步阻塞，可能将局部依赖异常放大为入口拒绝；这是需要验证的通用风险。",evidence:["看错误体与作用域，不只看 429/503 数量。","对齐 DNS/TLS/headers/首有效事件时间。"],cases:["F01","F15","F16","F23","F24"],sources:["S11","S12","S25"]},
+    {id:"recipe",n:"02",name:"Recipe / 编码解析",sub:"消息 → Token → API",kind:"official",group:"接入与协议",responsibility:"公开 Recipe 负责模型输入输出处理与响应解析；工具、思考内容、终止事件都属于接口契约的一部分。",state:"消息角色、模板/Tokenizer 版本、工具调用和增量解析状态。",coupling:"模型、Tokenizer、模板、解析器若不兼容，可能 HTTP 成功却任务失败。",evidence:["用脱敏事件类型对照原始输出与解析结果。","比较同模型不同 SDK/适配器的最小请求。"],cases:["F18","F19","F20","F21"],sources:["S09","S13","S15","S16"]},
+    {id:"scheduler",n:"03",name:"调度与准入",sub:"选池 · 排队 · 用户隔离",kind:"official",group:"调度与计算",responsibility:"把工作分配给可用资源；公开 API 有用户隔离，部署材料披露阶段相关调度与扩缩容。具体网关拆分未公开；有界准入与公平保护是本研究的保障建议。",state:"等待工作量、在途请求、池容量、缓存位置、版本。",coupling:"只按请求数准入，会忽略长输入、长生成、冷缓存和健康容量变化。",evidence:["同时看原始请求率与尝试率。","观察队列斜率、未缓存 Token/s 和可服务实例。"],cases:["F01","F02","F03","F04","F15","F22"],sources:["S02","S11","S25","S29"]},
+    {id:"prefill",n:"04",name:"Prefill",sub:"处理输入上下文",kind:"official",group:"调度与计算",responsibility:"处理尚未复用的输入计算。与 Decode 分开分析 TTFT 和生成速度，才能扩对资源。",state:"输入 Token、计算批次、已产生的 KV 中间状态。",coupling:"缓存失效、长输入和状态传输排队，都会表现为首字延迟；不能直接据此认定算力饱和。",evidence:["拆入口、排队、Prefill、交接四段耗时。","按输入长度和冷热缓存分别比较。"],cases:["F02","F04","F06","F13"],sources:["S03","S23"]},
+    {id:"transfer",n:"05",name:"状态交接",sub:"Prefill → Decode",kind:"official",group:"调度与计算",responsibility:"把生成所需计算状态交给 Decode。阶段解耦新增了独立网络、元数据兼容和双边回收问题。",state:"KV 布局、源/目标、传输 epoch、握手与超时。",coupling:"源端算完、目标端空等，双方仍可能占着状态；GPU 利用率下降不等于没有瓶颈。",evidence:["找 Prefill 完成到 Decode 首步的时间缺口。","按源/目标对关联传输失败与 NIC 指标。"],cases:["F06","F09","F14"],sources:["S02","S22","S23"]},
+    {id:"decode",n:"06",name:"Decode",sub:"持续生成 · 终态",kind:"official",group:"调度与计算",responsibility:"为在途序列逐步生成输出。目标是合格的完整回答吞吐，同时约束输出停顿和状态容量。",state:"当前生成位置、活动序列、输出/思考预算与 KV。",coupling:"大批次、长生成、慢 rank 和通信等待都会放大尾延迟；吞吐高不一定交互体验好。",evidence:["区分引擎 Token 延迟与客户端 chunk 间隔。","按生成长度、在途数和最慢 rank 看尾延迟。"],cases:["F03","F05","F07","F11","F17"],sources:["S02","S20","S21"]},
+    {id:"cache",n:"07",name:"缓存与 3FS",sub:"Block / SWA · 不同生命周期",kind:"official",group:"状态与故障域",responsibility:"当前披露区分持久 Block 与主机内存 SWA；SWA 缺失可有限回放恢复，不能一概算作整段上下文重算。缓存不是答案或会话恢复保证。",state:"前缀、命名空间、版本、引用与淘汰、KV 位置。",coupling:"当前 Prefill 可读取任意前缀，不采用前缀亲和路由。其他参考系统的亲和热点不应套作 DeepSeek 事实。隔离与版本正确性优先于命中率。",evidence:["先辨丢失哪层缓存，再估重算范围；同时看 miss Token/s。","区分存储、索引、前缀与版本问题。"],cases:["F04","F05","F22","F25"],sources:["S02","S14","S08","S30"]},
+    {id:"expert",n:"08",name:"MoE / 专家并行",sub:"DeepEP · EPLB",kind:"official",group:"状态与故障域",responsibility:"Token 分配到专家计算，再组合结果。DeepEP 提供通信，EPLB 通过副本及放置均衡专家工作。",state:"专家位置、Token 分布、每 rank 通信和计算进度。",coupling:"实例同步受最慢成员影响；专家热点、物理慢卡和请求级缓存热点应分别诊断。",evidence:["每专家/rank 的工作量及 max/median step time。","热点跟着内容走，还是始终跟着物理卡？"],cases:["F07","F08","F09"],sources:["S04","S05"]},
+    {id:"gpu",n:"09",name:"GPU / 完整实例",sub:"故障域 · 预热 · 内核",kind:"official",group:"状态与故障域",responsibility:"健康单元必须能组成完整可服务实例。官方披露的大 EP 实例内，单 GPU 故障可能令整个实例不可用。",state:"权重、通信组、内核/驱动版本、预热和就绪。",coupling:"重启分钟级意味着热备用比“可申请几张卡”更关键；进程存活不能代表推理有进展。",evidence:["实例级短生成探针与每 rank 进度。","硬件/通信事件、版本和冷启动阶段耗时。"],cases:["F07","F09","F13","F21"],sources:["S02","S06","S07","S33"]},
+    {id:"engram",n:"10",name:"Engram / 主机资源",sub:"GPU 路径的 CPU / RDMA",kind:"official",group:"状态与故障域",responsibility:"GPU 路径涉及主机内存与 RDMA 查表；文档中的 NPU 路径则将数据保留在设备内存。硬件适用范围必须区分。",state:"表版本、主机内存、NIC、远程查询与局部性。",coupling:"GPU 路径的 CPU/RDMA 查表变慢可能造成空等；此故障是机制推演，非已公开事故。",evidence:["查表/传输时间与 GPU kernel 时间分离。","按主机、NUMA、NIC 和版本定位。"],cases:["F10","F09"],sources:["S02","S33"]},
+    {id:"vision",n:"E",name:"视觉编码分支",sub:"图片 → embedding",kind:"official",group:"条件分支",responsibility:"图片请求经过独立 Vision Encoder，纯文本请求不走此分支。多模态输入可能在这里形成独立资源瓶颈。",state:"图片 patch 工作量、编码队列与 embedding。",coupling:"图片大小与 patch 数增加会使请求变重；只看文本 Token 或 P/D GPU 可能漏诊。",evidence:["同文本换成纯文本/小图的受控对照。","分离图片读取/解码、VE 排队/计算、embedding 交付。"],cases:["F27"],sources:["S02"]},
+    {id:"structured",n:"SO",name:"结构化输出编译",sub:"schema → 解码约束",kind:"official",group:"条件分支",responsibility:"部署问答披露独立机器承担 structured-output 编译。只对相应结构化请求生效，不能把所有 JSON 失败归此处。",state:"schema/约束、编译结果、版本与编译队列。",coupling:"复杂新 schema、编译依赖或解析不兼容可造成首输出慢和任务失败；具体恢复步骤属于推演。",evidence:["普通文本与固定 schema / 新 schema 对照。","检查编译耗时、成功率与约束/模型兼容版本。"],cases:["F28","F18"],sources:["S02","S13"]},
+    {id:"control",n:"11",name:"控制与发布",sub:"发现 · 容量 · 版本",kind:"inference",group:"控制面",responsibility:"维护端点、部署和容量变化；具体控制面产品未公开。请求、发现、事件应作为不同故障面分析。",state:"实例 epoch、就绪/排空、兼容版本清单和路由视图。",coupling:"陈旧视图会向坏目标发流；缩容若先杀后摘流，会主动制造流中断。",evidence:["实际实例状态与调度视图是否一致。","发布、SIGTERM、就绪、流终止对齐时间轴。"],cases:["F13","F14","F21","F22","F26"],sources:["S01","S27","S32"]}
+  ],
+  scenarios: [
+    {id:"normal",title:"正常完成",phase:"从连接到业务完成",status:"HTTP 200",tone:"good",stages:[["入口",70],["排队",90],["Prefill",260],["KV 交接",60],["Decode",1800],["解析验收",80]],trace:["0ms · 请求进入，开始总 deadline","70ms · 收到 headers；还不能算成功","约 500ms · 首模型输出；随后开始答案内容","2360ms · 收到合法终态并通过任务校验"],finding:"完整成功需要传输、协议与任务验收三层证据。图示时间仅教学示意，不是 DeepSeek 实测。",case:"F18",sources:["S13","S20"]},
+    {id:"queue",title:"保活但不出字",phase:"准入 → 排队",status:"200 + SSE comment",tone:"bad",stages:[["入口",70],["排队",3000],["Prefill",260],["KV 交接",60],["Decode",1800],["解析验收",80]],trace:["0ms · 连接建立","1000ms · 收到 keepalive comment；没有模型输出","3000ms · 首模型 Token 仍未出现，首 Token 预算已超","最终可能被关闭；应取消并释放原计算"],finding:"连接活着只能证明传输活性。官方允许排队保活，未开始推理可在 10 分钟后关闭；客户端应设置更符合业务的独立期限。",case:"F01",sources:["S11"]},
+    {id:"cold",title:"缓存失效",phase:"复用 → 重新计算",status:"请求量未增长",tone:"warn",stages:[["入口",70],["排队",700],["Prefill",1800],["KV 交接",100],["Decode",1800],["解析验收",80]],trace:["模板/命名空间变化先发生","miss Token/s 上升，Prefill 排队随后增长","TTFT 超时，重试若无预算会再次增加工作量","限制重算与预热，恢复可证实的前缀复用"],finding:"命中率下降不是根因结论；先区分前缀变化、隔离键、冷启动、缓存存储或索引异常。",case:"F04",sources:["S14","S25","S30"]},
+    {id:"handoff",title:"交接卡住",phase:"Prefill 完成 → Decode 等待",status:"GPU 未必满载",tone:"warn",stages:[["入口",70],["排队",90],["Prefill",260],["KV 交接",2800],["Decode",1800],["解析验收",80]],trace:["源端已完成输入计算","目标 Decode 尚未真正开始生成","双方可能各自保留状态与槽位","定位源/目标对、链路与布局版本后再恢复"],finding:"单看 Prefill 或 Decode 利用率可能误判。需要一段独立的状态交接 span 和双边清理证据。",case:"F06",sources:["S22","S23"]},
+    {id:"partial",title:"输出到一半断流",phase:"Decode → 终态缺失",status:"HTTP 200 / unexpected EOF",tone:"bad",stages:[["入口",70],["排队",90],["Prefill",260],["KV 交接",60],["Decode",2600],["解析验收",0]],trace:["首内容已对用户可见","中途停顿或连接断开","缺少协议合法终态：只能标部分结果","再生成必须作为新候选，不能无声拼接"],finding:"首包成功率会掩盖这类故障。恢复在途连续性与恢复新请求是两个不同目标。",case:"F17",sources:["S13","S26"]},
+    {id:"ghost",title:"取消后仍在计算",phase:"客户端退出 → 引擎未停止",status:"前端连接已结束",tone:"bad",stages:[["入口",70],["排队",90],["Prefill",260],["KV 交接",60],["Decode",3300],["解析验收",0]],trace:["客户端 deadline 到期或主动断开","worker 收到取消计数增长","engine abort / KV free 未发生，旧计算仍占资源","再次重试会产生新旧两份工作"],finding:"必须关联 disconnect → cancel_received → engine_abort → KV_free。信号计数不是资源回收证明。",case:"F12",sources:["S28"]}
+  ],
+  glossary: [
+    ["Prefill","处理输入上下文的阶段。其负载应关注未缓存输入工作量，不能只看请求数。"],
+    ["Decode","在已有上下文上持续生成输出。活动序列、输出长度和状态容量一起决定压力。"],
+    ["KV Cache","注意力计算的中间状态。前缀复用、状态内存和生成迁移是相关但不同的问题。"],
+    ["EP / rank","专家并行及其成员。同步步骤可能受最慢 rank 约束；一个成员故障可影响完整组。"],
+    ["DP","数据并行服务副本或组的维度；与专家 Token 路由、缓存请求路由不是同一层。"],
+    ["MLA / SWA","模型注意力与窗口机制。不要把传统 MHA 的每 Token 显存公式直接套来估容量。"],
+    ["MTP / speculation","多 Token 预测或投机生成。应看接受率与每个最终有效 Token 的总工作量。"],
+    ["TTFT / ITL","首模型 Token 延迟 / 引擎 Token 间隔。首字节、角色事件、SSE chunk 不能自动替代。"],
+    ["Goodput","在约定长度分布、延迟和正确性目标下完成的有效任务吞吐，不是裸生成 Token 数。"],
+    ["故障域","一次故障会共同失去的服务单元。规划备用应按完整可服务实例及共同依赖计算。"],
+    ["RTO / RPO","恢复时间 / 状态损失目标。新流量、在途生成、工具动作及账单状态应分别定义。"],
+    ["证伪","寻找能排除候选原因的观测。例如 Prefill 正常、交接耗时增长，会削弱算力饱和假设。"]
+  ]
+};
+</script>
+  <script>RESEARCH.cases = [
+  {
+    id:"F01",title:"连接保活，迟迟没有真正输出",symptom:"latency",layers:["edge","scheduler","prefill"],scope:"请求 / 池",owner:"入口 + 调度",tags:["TTFT","SSE","keepalive","排队"],summary:"活跃连接、HTTP 200 或 SSE comment 都不能证明模型开始推理。",
+    signals:["首字节正常，首模型 Token 超时","排队工作量增长或长输入集中","小探针与真实长请求表现不同"],
+    mechanism:["可能在等待资源，也可能卡在编码、Prefill、状态交接或代理缓冲；正常思考先于答案也是另一分支。","公开契约允许等待期间返回保活；不能把每条保活都作为业务 deadline 的重置依据。"],
+    diagnose:["若首字节快、首有效事件慢：检查真实事件类型及代理缓冲，排除客户端只丢弃了内容。","若等待与未缓存 Token 同升：转查 F02/F04；若 Prefill 已完成，则转查 F06。","记录 headers、首非注释事件、首模型 Token、首答案、终态五个时间点；不要记录敏感原文。"],
+    contain:["设置独立排队/首模型 Token 期限和总期限，降低高成本新增工作。","超时后取消原请求；尚无可见输出/外部动作且总预算允许时，才考虑一次受控重试。"],
+    restore:["先定位失衡阶段，再恢复对应池或路由；只向已验证有余量的备用池移流。","分批释放积压。若队列斜率仍为正，停止继续加流，保留拒绝和降级边界。"],
+    verify:["同长度、同缓存组的首模型 Token P95/P99 回落。","真实请求有合法终态，取消后不再留下计算。"],
+    prevent:["建立真实进度 SLI；keepalive 只服务连接保活。","流式代理关闭不必要缓冲，贯穿传递 deadline。"],
+    avoid:"无限等待、每次保活重置业务超时、未取消就并发重试。",
+    sources:["S11","S20","S25"]
+  },
+  {
+    id:"F02",title:"首字很慢，开始以后输出正常",symptom:"latency",layers:["prefill","scheduler","recipe"],scope:"Prefill / 编码池",owner:"推理 + 调度",tags:["Prefill","长输入","Tokenizer","TTFT"],summary:"先定位入口编码、排队、输入计算、交接四段，避免扩错资源池。",
+    signals:["TTFT 上升，进入 Decode 后 ITL 接近基线","未缓存输入 Token/s 或输入长尾上升","也可能 CPU 饱和而 GPU 未忙"],
+    mechanism:["长输入、冷缓存和 Prefill 健康容量减少都会提高输入侧负载。","入口 Tokenizer/模板处理慢可产生相同表象；GPU 平均利用率不足以区分。"],
+    diagnose:["对同输入长度、同冷热缓存、同版本组比较分段耗时。","Prefill kernel 正常、入口 CPU 排队高：处理编码池；Prefill 批次耗时或等待高：处理计算池。","检查模板发布和 miss Token/s 的先后关系，不只看请求 QPS。"],
+    contain:["限制新增长输入、低优先级批量重算；保护短交互任务。","若与前缀模板变更相关，回退可证实的异常改动，暂停全量预热。"],
+    restore:["扩/恢复已定位的编码或 Prefill 资源；调参只采用经过回放验证的配置。","若用分块输入改变批预算，同时观察 Decode 长尾；出现新回归立即回退。"],
+    verify:["同一回放集合的输入阶段 P99 达标。","Decode 停顿和任务质量未因优化而恶化。"],
+    prevent:["按输入长度、缓存状态独立容量评估。","批处理与交互工作量分级准入，输出与输入池分别扩缩容。"],
+    avoid:"只加 Decode、直接拉高总并发、把 CPU 编码瓶颈当作 GPU 算力不足。",
+    sources:["S23","S21","S03"]
+  },
+  {
+    id:"F03",title:"首字正常，越生成越卡",symptom:"stall",layers:["decode","scheduler","expert"],scope:"Decode / 实例",owner:"推理引擎",tags:["ITL","TBT","长输出","思考预算"],summary:"需要把引擎生成停顿、专家/通信等待和代理分块缓冲区分开。",
+    signals:["ITL / 最长可见停顿上升","活动序列与输出长度分布变重","首 Token 可能仍然正常"],
+    mechanism:["长生成、更多思考 Token、批次增大和 KV 压力会提高输出侧压力。","混部输入计算、慢 rank 或网络缓冲也能表现为输出卡顿。"],
+    diagnose:["比较固定生成长度后的引擎 step time 与客户端 chunk gap。","引擎稳定而用户侧成批输出：检查代理/SDK；引擎变慢：查 KV、通信、专家及活动序列。","区分首模型 Token 与首答案内容，避免把合理思考间隔直接当故障。"],
+    contain:["收紧新增长生成准入，保护已在途任务。","如产品有明确契约，可显式限制输出/思考预算；不要静默截断仍声称完整成功。"],
+    restore:["恢复/增加完整 Decode 实例，分批移流并监测最慢 rank。","回到验证过的活动序列和批量预算；仅在已测试方案内调整阶段隔离。"],
+    verify:["真实用户最长停顿与引擎 ITL 同时恢复。","完整任务 goodput、输出完整性和长任务公平性均达标。"],
+    prevent:["用活动序列、生成长度和 KV 三者评审容量。","将生成预算与模型默认行为变化纳入发布门禁。"],
+    avoid:"只看平均 GPU 利用率，用偷偷缩短答案掩盖容量不足。",
+    sources:["S20","S21","S23"]
+  },
+  {
+    id:"F04",title:"缓存命中下降，重算引发第二轮过载",symptom:"capacity",layers:["cache","prefill","scheduler"],scope:"缓存命名空间 / 模型池",owner:"缓存 + 调度",tags:["cache","miss","前缀","冷启动","重算"],summary:"恢复缓存与控制重算必须同时进行；“绕过缓存”不是免费降级。",
+    signals:["命中 Token 下降，miss Token/s 先于 TTFT 上升","请求数相近但输入计算需求跳升","模板、模型或用户隔离标签刚变化"],
+    mechanism:["相同前缀才能复用；模板首部插入时间戳、版本/隔离键变化、淘汰或存储故障都可能导致失配。","先区分持久 Block 丢失与内存 SWA 丢失；当前实现可有限回放恢复 SWA，不应一律估为全量重算。当前 Prefill 不采用前缀亲和，亲和热点只作为参考机制。"],
+    diagnose:["按模板/模型/租户比对脱敏前缀指纹和 hit/miss Token。","若前缀稳定但读错误高：查存储/索引；若无读错误且发布后变化：优先查命名空间与前缀。","看 Token 加权命中及总输入量，不能只看请求命中百分比。"],
+    contain:["限制重算和预热速率，暂缓低优先级长输入。","仅在有冷缓存承载余量、且已验证正确性的情况下绕过坏缓存路径。"],
+    restore:["回退意外前缀变化或修复坏存储端点，按版本隔离恢复热集。","小批预热并测队列斜率；若重算增长超过预算，停止扩大预热和放流。"],
+    verify:["未缓存工作量下降，短/长输入 TTFT 分组恢复。","缓存仍冷时也能在声明的降级流量内稳定完成任务。"],
+    prevent:["常态保留冷缓存容量模型和演练。","缓存正确性、版本隔离和热点负载与命中率一起管理。"],
+    avoid:"全量清缓存、无限重算、强制所有相似请求挤到同一热节点。",
+    sources:["S14","S30","S25","S08"]
+  },
+  {
+    id:"F05",title:"KV 容量耗尽，显存未 OOM 却吞吐暴跌",symptom:"capacity",layers:["cache","decode","scheduler"],scope:"状态池 / 实例",owner:"引擎内存 + 调度",tags:["KV","抢占","preemption","重算","显存"],summary:"预分配显存看似稳定，逻辑可用 block 仍可能耗尽。",
+    signals:["可用 KV 槽低，长序列与等待并存","参考引擎中可能出现抢占/重算增长","GPU 总显存曲线未必出现突增"],
+    mechanism:["状态随输入与生成长度占用，连接数相同并不代表状态需求相同。","当前 Q&A 明确其 Decode 部署不受缓存容量约束。本卡适用于参考引擎、自建配置变化及异常泄漏等风险，不暗示是 DeepSeek 当前常态瓶颈；抢占重算也不是其已披露策略。"],
+    diagnose:["区分权重加载 OOM、临时张量 OOM 和 KV 逻辑池不足。","关联可用状态块、每请求长度、引用/淘汰、等待 Decode 的预留槽。","检查取消或交接超时是否未释放状态，转查 F12/F06。"],
+    contain:["减少新增高状态占用请求，让可完成的在途请求先退出。","暂停预热和无用重算，保留通信 buffer 与临时张量余量。"],
+    restore:["转移长上下文流量或增加服务副本；按已验证内存配置重建异常实例。","修改状态预算前回放长尾输入与生成，不直接提高显存上限；出现 OOM 立即撤回。"],
+    verify:["分配失败/抢占回到基线，状态回收与任务完成吞吐恢复。","长请求未被长期饿死，GPU 与状态池均有稳定余量。"],
+    prevent:["按 Token 状态与最大在途长度准入。","验证引用计数、淘汰和异常退出路径；不直接套 MHA 的 KV 字节公式。"],
+    avoid:"把显存使用上限推到近 100%，反复清缓存，把“没有 OOM”当健康。",
+    sources:["S21","S24","S20"]
+  },
+  {
+    id:"F06",title:"Prefill 已完成，Decode 卡在状态交接",symptom:"latency",layers:["transfer","cache","decode"],scope:"源/目标配对 / 链路",owner:"传输 + 引擎",tags:["KV transfer","RDMA","handshake","传输"],summary:"阶段分离引入独立的交接队列、兼容版本与双边回收问题。",
+    signals:["Prefill 完成到 Decode 首步的缺口扩大","目标保留槽位却没有生成，源状态迟迟未释放","错误集中在某些源/目标组合"],
+    mechanism:["可能是网络带宽/错误、握手元数据不兼容、坏端点或传输超时清理失效。","继续增加 Decode 预留不会修复传输，反而可能消耗更多状态空间。"],
+    diagnose:["给交接单独建 span，拆握手、传输、目标确认与源端释放。","比对 KV bytes、吞吐、NIC 错误和布局/引擎版本。","固定源换目标、固定目标换源，缩小到端点或链路，保留现场。"],
+    contain:["停止向确认坏的配对派发新任务，限制跨域迁移。","按受支持流程清理超时握手的双方状态，不重用旧 epoch。"],
+    restore:["恢复坏端点/链路或回滚不兼容组件，再以小流量验证源目标组合。","只有预置并压测过的替代传输/聚合方案才可切换，负载超预算立即撤回。"],
+    verify:["交接成功率和尾延迟恢复，源/目标状态能成对释放。","输出内容及多轮状态正确，不只是传输测速通过。"],
+    prevent:["传输独立 SLI、布局兼容清单和拓扑感知放置。","测试传输中取消、源故障和目标故障。"],
+    avoid:"随手禁用 RDMA 让全量走 TCP，跨模型版本盲迁 KV，只扩 Decode。",
+    sources:["S22","S23","S33"]
+  },
+  {
+    id:"F07",title:"一张 GPU 故障，整个实例停止推进",symptom:"error",layers:["gpu","expert","decode"],scope:"完整并行实例",owner:"GPU 平台 + 引擎",tags:["EP","rank","Xid","ECC","hang","故障域"],summary:"恢复与备用容量应按完整可服务实例设计，而不是按空闲卡数。",
+    signals:["同实例多个请求同时停顿或失败","一个 rank 出错，其他成员等待同一通信步骤","进程存活，但端到端推理探针无进度"],
+    mechanism:["官方披露的大 EP 实例中，单 GPU 故障可能使整个实例不可用。","硬件故障、慢卡、链路和通信组错误表象相近；需要关联同故障域的进度与硬件事件。"],
+    diagnose:["按实例/通信域聚合停顿请求，关联每 rank 最后进展时间。","检查硬件/RAS、驱动与 NIC 错误；若无硬错误，验证慢 rank 与网络拥塞。","保留关键诊断后确认可用的完整备用实例，不能只统计 Pending Pod 或空闲 GPU。"],
+    contain:["完整摘除不健康实例，停止新请求，保留健康池余量。","仅对尚无可见输出/副作用的工作按总重试预算重路由；部分生成显式标为中断。"],
+    restore:["隔离坏卡或节点，按一致配置重建完整通信组，加载与预热。","通过代表性推理探针后逐级放量；旧 epoch 仍被选中或进度再次停顿时立即摘除。"],
+    verify:["新流量不再路由旧组，长短输入及完整生成 canary 均通过。","健康池 N-1 容量、尾延迟、无重复输出和状态清理同时满足要求。"],
+    prevent:["整实例热备用、进度探针、RAS 基线及单 rank 故障演练。","将共同网络/机架故障纳入 N-k，按实测恢复时间设计限流。"],
+    avoid:"只重启一个 rank、卡死实例反复重新就绪、重启全部健康池。",
+    sources:["S02","S04","S33","S31"]
+  },
+  {
+    id:"F08",title:"专家热点或慢 rank，平均利用率掩盖尾延迟",symptom:"stall",layers:["expert","gpu","scheduler"],scope:"专家 / rank / 实例",owner:"MoE 调度",tags:["EPLB","热点","all-to-all","skew"],summary:"先区分专家工作量不均、请求缓存亲和和物理慢卡，再决定均衡动作。",
+    signals:["max rank step time 明显高于 median","部分专家 Token 分布偏斜","整体 GPU 平均利用率仍不高"],
+    mechanism:["MoE 内容分布改变会改变专家工作量；同步步骤受最慢成员约束。","EPLB 通过热点专家副本及放置均衡工作，但均衡移动也有成本，不等于容灾接管。"],
+    diagnose:["联合看每专家 Token、每 rank 计算、通信等待和 NIC。","热点随内容移动：查专家分布；始终固定某卡：查硬件/主机；只热在请求端：查缓存路由。","比较变更前后流量分布，避免用均匀合成流量证明生产均衡。"],
+    contain:["限制导致突发的异常工作，避开已确认物理变慢的实例。","暂停未经验证的放置调整，保留可回退配置。"],
+    restore:["通过受支持的副本/映射机制回到已验证放置，或受控重新均衡。","分步观察通信开销与 P99，若负载更均匀但延迟更差则回退。"],
+    verify:["max/median rank 步时与任务尾延迟同时改善。","迁移期间无错误结果或无进度请求。"],
+    prevent:["生产分布回放、每 rank 分位监控、均衡移动预算。","把请求级路由和专家级路由拆开评审。"],
+    avoid:"只靠 GPU 平均值扩缩容，未经支持在线重排专家，把专家副本当服务备用。",
+    sources:["S04","S05","S30"]
+  },
+  {
+    id:"F09",title:"RDMA / all-to-all 长尾拖慢整个同步组",symptom:"stall",layers:["transfer","expert","gpu","engram"],scope:"链路 / NIC / 拓扑域",owner:"网络 + GPU 平台",tags:["RDMA","NIC","拥塞","PFC","ECN","通信"],summary:"吞吐测速正常，不代表推理小批低延迟或同步通信尾延迟正常。",
+    signals:["通信时间升高而纯计算时间接近基线","同机架/链路相关的 rank 慢","网络拥塞、重传或 NIC 错误相关"],
+    mechanism:["状态交接、专家 dispatch/combine、远程查表可能共享网络资源。","坏链路、竞争流量、网卡选择和拓扑放置均可能使少数成员拖慢整个组。"],
+    diagnose:["分别测专家通信、KV 交接和主机查表，不能统称网络慢。","按物理路径关联端口/NIC 计数和每 rank 步时；比较小批低延迟与大流吞吐。","通信框架差异需尊重：NCCL 诊断方法是参考，不等同 DeepEP 实现。"],
+    contain:["停止向确认坏路径和实例派发，降低竞争工作量。","保留健康域；避免同时迁移大量 KV 把网络进一步压满。"],
+    restore:["修复或隔离坏 NIC/链路，恢复已验证的拓扑与通信配置。","逐级回放真实通信模式；错误或 P99 回升即退回已知健康域。"],
+    verify:["各通信路径尾延迟恢复，同步组无新停顿。","端到端 TTFT/ITL 达标，非仅带宽测试通过。"],
+    prevent:["按通信模式做持续基准，监测最慢路径。","共享网络资源做容量和故障隔离评审。"],
+    avoid:"未经验证全量换 TCP、随手修改集群级通信参数、用平均带宽排除网络故障。",
+    sources:["S04","S33","S22"]
+  },
+  {
+    id:"F10",title:"GPU 不满载，瓶颈在主机内存或远程查表",symptom:"stall",layers:["engram","gpu","transfer"],scope:"主机 / RDMA 后端",owner:"主机资源 + 推理",tags:["Engram","CPU","NUMA","RDMA","内存"],summary:"当前部署披露将部分主机/RDMA 访问带入关键路径，GPU 空闲不能排除资源瓶颈。",
+    signals:["GPU kernel 时间稳定，等待段上升","某些主机/NIC 相关的请求更慢","CPU 内存、NUMA 或查表延迟异常"],
+    mechanism:["适用 GPU 部署路径：基于主机承载与远程访问，可推演主机资源争用、局部性或版本风险。官方 NPU 路径将 Engram 数据保留在设备内存，不能套用 CPU offload 诊断。","这不是 DeepSeek 已公开事故，也不意味着任何 CPU 峰值都来自 Engram。"],
+    diagnose:["分离 Tokenizer、远程查表、通信和 GPU kernel 的时间。","按主机、NUMA、NIC、表版本比对健康样本。","若查表稳定，则回到 F08/F09，避免只因 GPU 不满就盲加 CPU。"],
+    contain:["隔离已确认异常后端或实例，控制新工作量。","停止相关主机/表版本扩流，保留健康副本。"],
+    restore:["恢复已验证的主机/NIC/内存与兼容版本，做目标形状的端到端预热。","逐级切回；若表访问正确性或延迟未达标，不放流。"],
+    verify:["查询正确且尾延迟回基线，GPU 等待随之减少。","代表性任务质量和完成时长达标。"],
+    prevent:["主机内存和 NIC 与 GPU 一起容量评估。","表/模型/后端兼容清单，监控局部性和远程访问尾延迟。"],
+    avoid:"只加 GPU、用 CPU 平均占用代替查表链路证据。",
+    sources:["S02","S33"]
+  },
+  {
+    id:"F11",title:"投机生成接受率下降，算得多却产出少",symptom:"capacity",layers:["decode","gpu"],scope:"生成配置 / 工作负载",owner:"推理优化",tags:["MTP","speculation","接受率","goodput"],summary:"优化应按最终有效输出工作量验收，不能按草稿 Token 数验收。",
+    signals:["草稿/预测工作增长，有效产出未同步增长","每个最终输出 Token 的耗时增加","问题与内容、采样或模型配置相关"],
+    mechanism:["投机预测需要验证，未被接受的草稿不等于用户有效输出。","官方披露自适应策略：结合接受率预测与硬件吞吐曲线选取草稿前缀。完整生产实现和具体部署参数未全部开源，调用方不能假设可直接调节。"],
+    diagnose:["区分草稿数、接受数、验证成本和最终输出数。","同一任务集合比较接受率与端到端 goodput，排除网络和专家热点。","检查采样参数、内容分布或版本改变是否先于下降。"],
+    contain:["停止继续扩大实验参数，限制异常工作量。","有受支持且已测试配置时，降低投机深度或回到稳定配置。"],
+    restore:["在代表性短/长生成样本上对照调参，按任务完成/延迟/成本选择。","如无可控接口，不假设调用方可远程修改内部投机机制。"],
+    verify:["有效输出吞吐改善且尾延迟、质量不回归。","不同任务组没有被整体均值掩盖的恶化。"],
+    prevent:["按工作负载跟踪接受率与总成本。","优化发布设置 goodput 和质量门禁。"],
+    avoid:"把草稿 Token/s 当服务吞吐，未测试就关闭或调大投机深度。",
+    sources:["S02","S20"]
+  },
+  {
+    id:"F12",title:"用户已离开，后台仍在生成",symptom:"capacity",layers:["edge","scheduler","decode","cache"],scope:"请求及子请求",owner:"入口 + 引擎",tags:["取消","cancel","ghost","资源泄漏"],summary:"取消必须到达引擎并完成状态回收；cancel_received 只是中间事件。",
+    signals:["入口连接数下降，后端在途数不降","取消后仍产出 Token，KV 不释放","重试导致新旧请求同时计算"],
+    mechanism:["断开未检测、上下文未传播、子请求未关联，或引擎收到取消但未中止。","跨阶段还可能只取消入口，不释放传输源和目标的预留状态。"],
+    diagnose:["用 request_id 串联 disconnect、cancel_received、engine_abort、KV_free。","分别在排队、Prefill、交接、Decode 阶段取消，确认哪一段缺失。","检查正常长请求，避免把它们误作孤儿终止。"],
+    contain:["限制新增长生成，停止超时后的无预算重试。","按引擎支持方式终止已确认的孤儿工作，避免破坏共享状态。"],
+    restore:["回退取消传播回归，修复子请求关联和双边清理。","必要时先摘流排空单实例再重建；不能全池粗暴清理。"],
+    verify:["取消后不再持续生成，状态/在途数按目标期限回基线。","各阶段取消测试通过，正常请求不受误杀。"],
+    prevent:["取消到实际停止和回收分别设 SLI。","deadline/取消贯穿传播，持续测试客户端提前断开。"],
+    avoid:"把取消计数当回收证明，入口超时就立即重试，终止所有“长请求”。",
+    sources:["S28","S22"]
+  },
+  {
+    id:"F13",title:"扩容来不及，新实例就绪却无法承接",symptom:"capacity",layers:["gpu","control","prefill","decode"],scope:"容量池 / 启动流程",owner:"平台发布 + 推理",tags:["cold start","JIT","预热","readiness","分钟级"],summary:"有进程、有 Pod、有 GPU，都不等于已有可承接工作量的完整实例。",
+    signals:["实例数量增加，完成吞吐不增长","权重加载、编译或预热持续耗时","新实例首批请求高延迟/失败"],
+    mechanism:["权重、通信组、内核/JIT、图与缓存都可能需要准备。","官方披露的分钟级重启约束，意味着扩容无法替代所有瞬时故障的热备用。"],
+    diagnose:["拆资源分配、权重、通信初始化、编译、预热、发现传播时间。","readiness 是否真的跑过代表性模型请求，还是仅 HTTP 进程可访问？","区分单个新版本兼容问题与资源池整体拉起速度问题。"],
+    contain:["暂停过快放量，恢复完整热备用承载。","保持有界队列，显式拒绝超预算工作，避免用无限排队等待扩容。"],
+    restore:["修复启动瓶颈或回滚坏镜像/内核组合，预热后逐批加入。","真实多长度探针通过才就绪；首次工作长尾恶化即停止扩流。"],
+    verify:["容量按真实 goodput 增长，新旧实例质量一致。","完整恢复时间含申请到可服务，不只统计容器启动。"],
+    prevent:["保留整实例热备用；预构建兼容内核和代表性形状。","按冷启动时间提前触发扩容，独立扩 P/D 而非一刀切。"],
+    avoid:"把 Pending/Running 计入可用容量，过早就绪，指望分钟级启动解决秒级突发。",
+    sources:["S02","S06","S07","S21"]
+  }
+  ,{
+    id:"F14",title:"发布或缩容时，长流反复被切断",symptom:"stream",layers:["control","decode","transfer"],scope:"发布批次 / 版本",owner:"发布平台 + 引擎",tags:["drain","SIGTERM","migration","滚动更新"],summary:"摘流、传播、排空、迁移、退出需要有序进行；优雅迁移不等于任意故障续写。",
+    signals:["流中断与发布/SIGKILL 时间高度相关","新旧版本或状态布局混用","长生成比短探针更容易失败"],
+    mechanism:["终止宽限期不足、发现摘流未传播、不可迁移的状态或新实例尚未预热。","参考 Dynamo 的迁移默认关闭且有结构化解码等限制；不能泛化成 DeepSeek 的恢复保证。"],
+    diagnose:["对齐版本、摘流、最后新请求、在途数、退出信号和终止事件。","检查最长任务、工具轮次、结构化输出能否按声明完成或明确中断。","只在模型、Tokenizer、状态布局及解码状态均兼容时讨论迁移。"],
+    contain:["暂停发布和缩容，保留旧版本健康容量。","停止向待退出或确认回归的实例发新请求，先保护已有流。"],
+    restore:["按兼容发布单元回滚；先摘流确认传播，再等待完成或执行受支持迁移。","排空期限外的任务显式取消/标部分结果，最后退出；新实例预热后小批放量。"],
+    verify:["长生成、工具、结构化任务也无新增无声断流。","旧 epoch 不再接请求，状态正确清理，新版本冷流量达标。"],
+    prevent:["模型/Tokenizer/模板/解析器/内核绑定版本。","平台强杀期限包含内部排空和传播预算；每版实际演练。"],
+    avoid:"先杀再摘流、假设所有请求都能迁移、把不同版本答案无声拼接。",
+    sources:["S27","S26","S09"]
+  },
+  {
+    id:"F15",title:"429 激增，但不一定是全平台容量故障",symptom:"error",layers:["edge","scheduler"],scope:"账户 / 用户 / 模型",owner:"配额 + 调用方",tags:["429","concurrency","quota","user_id"],summary:"先判明限额作用域，减少正确层级的并发与重试。",
+    signals:["一个账户/用户明显高于其他组","在途数增长，但原始请求率未必增长","错误体可能揭示不同限制作用域"],
+    mechanism:["并发受请求持续时间影响；生成变长即可触及原来足够的额度。","官方区分账户并发及用户隔离，额度不能直接转换为固定 QPS。"],
+    diagnose:["核对错误体、模型、账户、稳定真实 user_id 与限制快照日期。","比较原始请求与尝试数，核算并发和持续时间。","若健康容量同时减少且各租户受影响，再转查 F16/F07。"],
+    contain:["停止立即重试，按受影响作用域降低并发。","使用公平有界队列，重试仅一层且有总期限/抖动预算。"],
+    restore:["在真实容量支持下重新分配租户预算，逐级放回任务。","若限额有误，走授权配额流程；不以新增身份绕过限制。"],
+    verify:["独立业务请求完成率和延迟恢复。","429 下降不是因为静默丢弃请求或无限排队。"],
+    prevent:["客户端自适应并发及稳定租户标识。","按长尾时长规划额度，预算重试与批任务。"],
+    avoid:"换 key/user_id 规避限制、把每个 429 都判成系统过载、全量放开限额。",
+    sources:["S11","S12","S25"]
+  },
+  {
+    id:"F16",title:"500 / 503 与重试形成过载正反馈",symptom:"error",layers:["edge","scheduler","gpu"],scope:"模型池 / 实例 / 网络路径",owner:"值班协调 + 容量",tags:["503","500","overload","重试风暴","retry"],summary:"先阻断负载放大，再找健康容量；扩容不是第一步的唯一选项。",
+    signals:["尝试率快于原始业务率增长","完成吞吐平台化、队列持续增长","超时、错误与健康实例下降相关"],
+    mechanism:["过载、实例故障、DNS/TLS/代理或 SDK 期限都可产生相近结果。","SDK、网关、应用多层重试会相乘；局部故障可把健康池拖进第二轮过载。"],
+    diagnose:["区分发生阶段、HTTP 错误体与网络错误。","按模型/实例/租户/网络路径缩小范围，查原始请求、尝试率、就绪容量和工作量。","关联官方状态只证明影响同时发生，不能据此确认技术根因。"],
+    contain:["冻结相关变更，限制低优先级高成本工作和长队列。","收敛到一层共享重试预算；对受影响范围熔断，保护健康域。"],
+    restore:["恢复完整实例或对应资源池；仅对有余量且任务兼容的备用目标移新流量。","分批消化积压，队列增长/错误回升即停；不要把坏流量一口气倒给备用池。"],
+    verify:["原始任务完成率、TTFT/ITL、队列斜率一起恢复。","拒绝/超时不被口径隐藏，未产生重复工具动作。"],
+    prevent:["基于多资源的准入、端到端 deadline 和重试 token budget。","按真实长尾流量做过载/N-k/冷缓存联合测试。"],
+    avoid:"无限重试、无限队列、同步全量双发、在无余量时全切备用池。",
+    sources:["S12","S25","S29"]
+  },
+  {
+    id:"F17",title:"已经输出一半，突然停顿或 EOF",symptom:"stream",layers:["edge","decode","gpu"],scope:"在途流 / 代理路径",owner:"流式服务 + 引擎",tags:["EOF","partial","stream","SSE","断流"],summary:"再生成是一个新的候选回答；没有公开保证可让任意流无损续接。",
+    signals:["答案已可见，却缺少协议终态","停顿集中在某代理超时或实例","可能没有最后 usage 事件"],
+    mechanism:["实例/通信失败、代理空闲期限、客户端退出、解析器错误或长思考阶段。","HTTP headers 已发送后，内部失败未必还能用 5xx 反映。"],
+    diagnose:["保留最后事件类型/时间、关闭原因、finish_reason 与代理日志。","引擎仍有进度而客户端无事件：查缓冲/网络；引擎也停止：查实例/通信。","核对 endpoint 的合法终态，usage 未到不能单独证明任务失败。"],
+    contain:["标记部分结果，停止执行未完整拼装的工具参数。","尽力取消原请求；按产品约定提供明确的重新生成，保留原答案身份。"],
+    restore:["修复所定位的代理/解析/实例问题；只为新请求切健康路径。","如有经验证的迁移机制，按能力边界使用，不能跨版本拼接。"],
+    verify:["完整终态、内容和工具链通过；原计算不再占用资源。","真实长流跨过旧超时边界仍正常完成。"],
+    prevent:["输出进度与连接期限对齐，定义部分结果契约。","测试断网、实例退出、长时间无内容和 usage 丢失。"],
+    avoid:"把任意 EOF 算成功，无声拼接重生成，按每个 delta 执行工具。",
+    sources:["S13","S26","S27"]
+  },
+  {
+    id:"F18",title:"HTTP 200 很健康，用户任务却失败",symptom:"contract",layers:["recipe","decode"],scope:"任务类型 / 终态",owner:"API 契约 + 业务",tags:["finish_reason","JSON","stop","length","insufficient_system_resource"],summary:"终态、结构与任务验收是独立门槛，不能由 HTTP 状态或 stop 代替。",
+    signals:["截断、空结果、无效 JSON 或工具循环未完成","资源不足/aborted 等终态升高","200 成功率未反映投诉"],
+    mechanism:["length 是预算耗尽，tool_calls 是交接，资源不足/中止是异常结果，过滤是策略终止。","官方还提示 JSON 模式可能只输出空格却以 stop 结束。"],
+    diagnose:["统计 finish_reason、长度预算、非空内容、schema 与工具循环完成率。","按任务类型定义哪些终态可接受；过滤与系统资源故障分开计数。","比较原始事件和 Recipe/SDK 解析结果，排除适配层丢字段。"],
+    contain:["先分类：资源异常按容量处理；预算耗尽显式提示/调整；工具交接继续合法流程。","对无效结构仅受控再生成；有外部副作用的动作先停并核对状态。"],
+    restore:["修复确定的解析、预算或实例问题，回放受影响任务集。","若要求 JSON/schema，完整接收后验证；多次失败转显式失败或人工流程。"],
+    verify:["传输完整、协议合法、结果满足任务契约三组指标分别达标。","不通过缩短答案、丢弃难任务美化成功率。"],
+    prevent:["每种任务有终态与 schema 规则；独立维护业务质量目标。","真实协议金丝雀覆盖空格、截断、资源失败和工具交接。"],
+    avoid:"只要 200/stop 就算成功，把所有幻觉归为平台宕机，过滤失败盲重试。",
+    sources:["S13","S09","S20"]
+  },
+  {
+    id:"F19",title:"工具轮次 400，或业务动作被执行两次",symptom:"contract",layers:["recipe","edge"],scope:"编排会话 / 外部事务",owner:"调用方编排 + 业务动作",tags:["tool","reasoning_content","幂等","副作用","400"],summary:"模型输出恢复与外部业务状态恢复要分开处理。",
+    signals:["第一轮正常，工具返回后下一轮失败","工具参数碎片未结束就执行","订单/消息等动作重复，外部响应曾超时"],
+    mechanism:["消息角色/工具 ID 不匹配，思考工具轮次缺少所需 reasoning_content，或动作提交后响应丢失。","工具由客户端执行；模型 tool_call_id 不是业务恰好一次保证。"],
+    diagnose:["检查脱敏 role/tool_call_id 序列及字段是否存在，不抄录思考原文。","用业务事务 ID 查询外部动作是否提交；先消除状态不确定性。","区分规划重试、工具调用重试、外部提交重试三层。"],
+    contain:["停止盲目重放，冻结不确定动作的自动执行。","查外部账本/订单/动作状态；未完整拼装并校验的参数不执行。"],
+    restore:["修复合法历史消息，保留已完成工具结果，继续会话。","业务动作采用稳定业务 ID 和外部幂等机制；无法确认时走补偿/人工核对，不再赌一次。"],
+    verify:["每个预定业务动作按稳定动作 ID 至多提交一次；应执行动作已完成或进入明确补偿/人工状态，会话能继续。","超时重试测试不会产生重复动作或状态丢失。"],
+    prevent:["持久编排/动作状态机，幂等放在业务提交边界。","工具协议与流式分片金丝雀，明确“未知”动作状态。"],
+    avoid:"重新跑模型就重新执行动作，把 tool_call_id 当业务唯一提交保证。",
+    sources:["S15","S13","S25"]
+  },
+  {
+    id:"F20",title:"换到 Responses API 后假挂起或丢上下文",symptom:"contract",layers:["recipe","edge"],scope:"endpoint / SDK 适配器",owner:"API 兼容层",tags:["Responses","[DONE]","previous_response_id","stateless"],summary:"接口名相似不代表终态、会话存储和后台执行语义相同。",
+    signals:["服务已结束，客户端仍等待 [DONE]","下一轮缺历史，background/store 不生效","有些参数未报错却未被执行"],
+    mechanism:["官方说明 Responses 兼容接口无状态，不支持若干存储/后台字段。","它以 response.completed / incomplete / failed 结束，不发送 Chat Completions 的 [DONE]。"],
+    diagnose:["检查 endpoint、事件类型和终态解析器，直接比较脱敏事件序列。","核对客户端是否显式发送必要历史，是否依赖不支持字段。","用能力矩阵逐项验收，不仅验证请求能返回 200。"],
+    contain:["回到正确 parser，停用不支持选项或回滚适配层。","显式补齐合法会话状态，不假设后台任务仍运行。"],
+    restore:["分端点实现完成/失败/不完整处理，使用协议样例回放。","多轮、工具、取消和空内容均通过后再切换真实任务。"],
+    verify:["合法终态及时结束；failed/incomplete 不能报成功。","多轮上下文完整，不支持能力被显式暴露。"],
+    prevent:["按 endpoint 固定契约测试及支持矩阵。","SDK 迁移门禁包含语义，不只包含 JSON schema。"],
+    avoid:"复用单一 [DONE] parser，把忽略参数当支持持久会话。",
+    sources:["S16","S09"]
+  },
+  {
+    id:"F21",title:"模型别名或内核更新后，质量/协议回归",symptom:"contract",layers:["control","recipe","gpu"],scope:"版本 / 任务族",owner:"模型服务 + 质量",tags:["alias","Flash","quantization","kernel","回归"],summary:"模型、模板、Tokenizer、解析器、量化与内核需要一起验证；API 别名未必不可变。",
+    signals:["HTTP 与延迟正常，schema/工具/任务评测变差","回归按硬件/版本或任务类型集中","输出预算、成本或答案长度突变"],
+    mechanism:["模型别名更新、提示词变更、解析兼容和数值/内核差异均可能影响结果。","内核库存在硬件和软件边界；这只支持风险机制，不证明发生过 DeepSeek 内核事故。"],
+    diagnose:["对齐官方更新、请求 alias、可观察模型元数据及自有模板/SDK版本。","用固定代表性任务集比较结构、工具、质量、成本和延迟。","若仅某 GPU/形状回归，核对兼容组合；若仅解析结果错，优先查 Recipe。"],
+    contain:["暂停问题版本/能力扩流，对高风险外部动作加校验。","停止把质量错误直接重试成更多副作用。"],
+    restore:["平台方回滚完整兼容单元；调用方只能选择实际可用且已评测的模型/配置。","不能承诺 API 支持旧版本固定；逐级恢复并保留独立质量回退条件。"],
+    verify:["同一任务集的能力、schema、工具和数值基线恢复。","技术 SLO 与成本均仍达标，不仅“更快了”。"],
+    prevent:["别名变更评测、影子验证、硬件/形状兼容矩阵。","维护模型/模板/解析器等版本清单与独立回退路径。"],
+    avoid:"承诺不存在的固定版本能力，只凭健康探针完成发布验收。",
+    sources:["S17","S06","S07","S09"]
+  },
+  {
+    id:"F22",title:"GPU 健康，路由视图仍指向旧或错误目标",symptom:"error",layers:["control","scheduler","cache"],scope:"发现 / 事件 / 路由视图",owner:"控制面 + 路由",tags:["discovery","epoch","stale","租约","事件"],summary:"请求、发现、缓存事件不是同一个通信平面，不能用重启 GPU 替代定位。",
+    signals:["已有流部分正常，新请求失败","实际实例与调度选中目标不一致","预测缓存命中与实际偏离"],
+    mechanism:["参考系统会使用独立发现/事件平面；租约、事件缺口和陈旧视图可影响路由。","DeepSeek 具体注册中心/消息产品未公开，本剧本只描述需要覆盖的通用机制。"],
+    diagnose:["核对路由选择、实例实际就绪与 epoch，确认旧成员是否仍被引用。","查事件序号缺口/延迟，分清负载视图和 KV 索引。","直接推理探针健康但经路由失败，才支持把范围收敛到控制/路由层。"],
+    contain:["隔离已确认坏目标，暂停发布/缩容以减少状态变化。","保持健康现有流；有经测试方案时进入容量受控的简化路由。"],
+    restore:["恢复发现/事件并按受支持流程重建快照，不混用旧身份。","确认 fencing/epoch 生效后逐批恢复缓存感知路由。"],
+    verify:["旧 epoch 不再被选中，实际命中与视图一致。","新老连接、取消与端点退出均正常。"],
+    prevent:["租约/epoch/fencing、事件缺口检测和快照重建。","发现平面与数据平面独立故障演练。"],
+    avoid:"无证据全池 GPU 重启，新旧实例共用身份同时接流。",
+    sources:["S32","S30","S26"]
+  },
+  {
+    id:"F23",title:"鉴权、余额或请求配置问题被误判为宕机",symptom:"error",layers:["edge","recipe","control"],scope:"key / 配置批次 / payload",owner:"账户配置 + 调用方",tags:["401","402","400","422","secret"],summary:"永久错误先纠正配置，广泛重试只会放大压力并隐藏真实问题。",
+    signals:["错误集中于新 key、某部署或 payload","最小合法请求与真实请求表现不同","与 secret/SDK/参数变更时间一致"],
+    mechanism:["密钥轮换未覆盖、账户余额、模型/参数/长度不合法，或工具历史缺失。","HTTP 错误码提供分类线索，仍需错误体和作用域定位。"],
+    diagnose:["用 key 指纹而非明文对照部署；查看错误体和参数形状。","使用已有授权凭据验证最小合法请求，再复现受影响 payload。","若只真实请求失败，优先查构造/长度/工具历史，不归咎基础设施。"],
+    contain:["对永久错误快速失败，关闭无意义重试。","暂停相关配置扩散，保留正常 key 和旧配置。"],
+    restore:["恢复正确 secret/参数构造或按授权流程处理账户问题。","最小请求和真实请求都通过后再恢复批量流量。"],
+    verify:["受影响配置批次错误归零，真实任务完整完成。","日志未泄漏 key，旧凭据退出符合既定轮换流程。"],
+    prevent:["配置预检、轮换重叠窗口、余额提醒和 SDK 契约测试。","错误按永久/暂态及账户/系统分开管理。"],
+    avoid:"打印 API key 排查，对 401/402/422 无限重试。",
+    sources:["S12","S15"]
+  },
+  {
+    id:"F24",title:"DNS / TLS / 代理故障伪装成模型服务异常",symptom:"stream",layers:["edge"],scope:"网络路径 / 代理 / 客户端",owner:"接入网络 + SDK",tags:["DNS","TLS","proxy","buffering","idle timeout"],summary:"先证实请求到达哪一层；没有 headers 的失败不应直接归因 GPU。",
+    signals:["特定网络/代理/SDK 失败，其他路径正常","连接或 TLS 耗时升高","输出按固定周期成批出现或固定时长断流"],
+    mechanism:["解析、证书、连接池、代理缓冲/空闲期限和客户端读取方式都可制造假慢或中断。","DeepSeek 内部网关产品未公开；此处是完整 API 服务必须覆盖的接入风险。"],
+    diagnose:["拆 DNS、connect、TLS、headers、首有效事件与终态时间。","在同一合法请求下对比受影响与已知正常路径；记录脱敏网络错误。","如果客户端没有数据而引擎/服务端仍有进展，优先检查代理和解析。"],
+    contain:["停止故障路径的重试洪峰，使用已验证可用路径。","对齐流式空闲期限和业务总期限，避免缓冲吞掉进度事件。"],
+    restore:["修复证书/解析/连接池或回滚代理配置；小流量长流验证。","禁止通过关闭证书校验等方式换取表面恢复。"],
+    verify:["长流跨旧超时点完整完成，连接与首内容延迟回基线。","无连接泄漏，安全校验仍开启。"],
+    prevent:["独立网络合成探针、SSE 代理测试、证书与连接池容量预警。","连接保活与模型进度使用不同指标。"],
+    avoid:"直接重启 GPU，关闭 TLS 校验，用无限 socket timeout 掩盖问题。",
+    sources:["S11","S13","S25"]
+  },
+  {
+    id:"F25",title:"租户隔离或缓存命名空间错误",symptom:"contract",layers:["edge","cache","scheduler"],scope:"租户 / 隔离域",owner:"安全 + 缓存 + 配额",tags:["user_id","isolation","namespace","污染","安全"],summary:"可用性恢复不能通过取消隔离来换取命中率；正确性与租户边界必须先保住。",
+    signals:["隔离标签变更后命中/限制异常","某租户影响其他租户调度","异常内容或状态复用需要安全核查"],
+    mechanism:["公开契约将 user_id 用于安全、缓存及调度隔离；错误标识会改变隔离作用域。","缓存污染/越界是本研究的风险推演，不是已证实 DeepSeek 漏洞。"],
+    diagnose:["检查真实稳定用户映射、命名空间、模型和版本键。","确认授权域与缓存键一致，不通过收集更多敏感原文来排查。","涉及越界迹象先按安全事件隔离与保全受控证据，不能只优化命中。"],
+    contain:["暂停可疑共享/复用路径并缩小影响域；明确降低可服务流量。","保留租户边界，限制冷缓存重算以避免二次过载。"],
+    restore:["修正身份与版本命名空间，在隔离环境做跨租户负测试。","仅清理确认受影响范围；验证隔离和容量后再逐批恢复复用。"],
+    verify:["跨租户负测试不复用不应共享状态，调度公平性恢复。","无数据越界证据且安全流程完成，冷态容量仍受控。"],
+    prevent:["身份/缓存/调度隔离一致性测试，稳定租户标识。","隔离变更与缓存/容量评审联动，最小化日志敏感内容。"],
+    avoid:"随机 user_id 规避限制、为了命中跨租户合并、无证据清全量缓存。",
+    sources:["S11","S14","S30"]
+  },
+  {
+    id:"F26",title:"日志、计量或共享依赖反压拖垮数据面",symptom:"capacity",layers:["control","edge"],scope:"共享依赖 / 进程资源",owner:"平台依赖 + 可观测",tags:["日志","metering","billing","backpressure","cardinality"],summary:"这类内部拓扑未公开，应作为设计审查项，不能声称是 DeepSeek 真实实现。",
+    signals:["GPU 仍健康，入口线程/队列/磁盘或内存异常","日志/遥测/共享依赖延迟与请求失败相关","采样或发布后指标基数/写入量激增"],
+    mechanism:["若请求关键路径同步等待日志、计量、审计或依赖，就可能传播反压。","无限异步队列同样会耗尽进程资源；降级还必须保护安全决策和可核对计量。"],
+    diagnose:["从 trace 证实等待点，查线程、队列、磁盘和高基数标签。","区分非必要遥测与必须一致的安全/计量状态；不能一概 fail-open。","比较停用可选详细日志前后，但保留最小事件和原始工作量口径。"],
+    contain:["降低可选详细日志与高成本采样，给写入队列设边界。","对关键依赖按预先约定策略限制新请求，保留最小审计/计量标识。"],
+    restore:["恢复依赖或回滚异常日志/采样配置，受控补齐可重放事件。","校验计量去重和缺口；不存在已验证持久补偿机制时，不宣称账单已一致。"],
+    verify:["关键路径等待回落，队列/磁盘恢复且请求完整完成。","最小审计和计量核对通过，敏感内容未进入普通指标。"],
+    prevent:["依赖分级、有限缓冲、采样与基数预算、计量事件去重。","按请求/发现/事件/审计的独立故障面演练。"],
+    avoid:"无条件关闭鉴权计费，丢掉全部证据，给每个 request_id 建指标标签。",
+    sources:["S25","S32","S20"]
+  },
+  {
+    id:"F27",title:"图片请求慢，文本请求却正常",symptom:"latency",layers:["vision","prefill","edge"],scope:"多模态分支 / VE 池",owner:"视觉编码 + 接入",tags:["vision","image","patch","E/P/D","图片"],summary:"把视觉编码 E 加入请求链路，按图片工作量而非图片个数排查。",
+    signals:["相同文本下带图片才慢","高分辨率/多图组更明显","P/D 未饱和但 VE 排队上升"],
+    mechanism:["独立视觉编码有自己的队列和计算；图片尺寸/patch 工作量改变资源需求。","也可能在上传、图片读取/解码或 embedding 交付，不是视觉 GPU 计算本身。"],
+    diagnose:["受控对比纯文本、小图、大图和多图，保留相同其余参数。","拆接入/解码、VE 排队/计算、embedding 到达和 Prefill 开始时间。","按图片 patch 工作量比较 VE 实例分布，不用图片数代替。"],
+    contain:["限制新增超大/多图的低优先级工作，保护正常文本与小图服务。","摘除已确认异常 VE 端点，保持与对应 P/D 版本兼容。"],
+    restore:["恢复对应 VE/解码资源或回退图像处理变更，预热后逐级放图像流量。","若允许降分辨率，必须显式约定并验证任务效果，不静默丢图。"],
+    verify:["真实多模态任务完整完成，图片理解质量和阶段 P99 达标。","文本服务没有被移流或预热拖慢。"],
+    prevent:["多模态独立工作量、SLO 和故障域评估。","图片形状/大小兼容测试，VE 故障与 embedding 交接演练。"],
+    avoid:"只扩 P/D，以图片数估全部成本，静默丢图后仍报告原任务成功。",
+    sources:["S02","S23"]
+  },
+  {
+    id:"F28",title:"新 schema 请求首包慢或结构化生成失败",symptom:"contract",layers:["structured","recipe","decode"],scope:"schema / 编译依赖",owner:"结构化输出 + 协议",tags:["schema","structured output","compile","JSON","编译"],summary:"区分 JSON 格式请求、约束编译、增量解码与最终校验，不能都归因模型能力。",
+    signals:["普通文本正常，特定新/复杂 schema 失败","编译等待或失败先于首输出","终态正常但结构验证仍不通过"],
+    mechanism:["公开部署有独立结构化输出编译职责，可能新增资源与版本边界。","编译失败/超时是机制推演；空格 JSON、截断、解析与不支持字段也可能产生相近结果。"],
+    diagnose:["固定文本和预算，对比无约束、已验证 schema、新 schema。","拆 schema 校验/编译、排队、生成与最终 validator，核对端点支持能力。","检查结构化状态与迁移兼容，不把参考迁移能力当普适保障。"],
+    contain:["暂停问题 schema 扩散，保留已验证任务路径。","明确失败或采用产品允许且同样校验的替代方案，不静默取消 schema 约束。"],
+    restore:["修复/回退编译或适配层，恢复兼容版本；控制新 schema 编译突发。","回放合法/非法/复杂与边界 schema，质量通过后逐级恢复。"],
+    verify:["编译与生成分别达标，合法终态后最终 schema 校验通过。","无约束降级没有被统计成原结构化任务成功。"],
+    prevent:["schema 能力矩阵、复杂度与编译工作量预算。","模型/编译器/解析器版本协同灰度；长流与取消测试。"],
+    avoid:"仅看 200，关闭校验掩盖失败，假定结构化请求能任意迁移。",
+    sources:["S02","S13","S16","S26"]
+  }
+];
+</script>
+  <script>Object.assign(RESEARCH, {
+  tradeoffs: [
+    {design:"Prefill / Decode 分离",benefit:"两阶段独立调度和容量规划",cost:"新增 KV 交接、预留资源及双边超时清理",control:"交接独立 span；源目标兼容清单；在途状态回收",case:"F06",sources:["S23","S22"]},
+    {design:"前缀与分级缓存",benefit:"减少重复输入计算",cost:"冷态重算、存储/索引依赖、热点和隔离风险",control:"冷缓存容量、受控预热、局部性与负载联合路由",case:"F04",sources:["S14","S30","S08"]},
+    {design:"大规模专家并行",benefit:"分布式专家计算与高效资源使用",cost:"同步慢成员约束；完整实例故障域扩大",control:"整实例冗余；每 rank 进度、网络与专家负载",case:"F07",sources:["S04","S05","S02"]},
+    {design:"大批量 / 高资源利用率",benefit:"提高吞吐、摊薄成本",cost:"尾延迟与状态容量余量可能变差",control:"用满足双延迟目标的 goodput 规划容量",case:"F03",sources:["S21","S23"]},
+    {design:"投机 / MTP",benefit:"被接受时减少有效生成的等待",cost:"低接受率下验证与草稿工作浪费",control:"按有效输出、接受率、延迟与质量联合验收",case:"F11",sources:["S02"]},
+    {design:"弹性与滚动发布",benefit:"容量随需求调整、持续升级",cost:"冷启动、陈旧路由、排空与兼容性问题",control:"热备用、代表性就绪探针、兼容单元回退",case:"F14",sources:["S27","S26","S06"]}
+  ],
+  metrics: [
+    {stage:"用户任务",name:"独立任务完成率",unit:"按唯一业务意图计数",meaning:"合法终态 + 结构可用 + 约定流程完成",pair:"与拒绝、超时、服务诱发取消一起看，避免重试提高分母或只挑成功请求",sources:["S13","S25"]},
+    {stage:"接入",name:"DNS / TLS / headers 分段",unit:"ms，按路径分组",meaning:"判断请求是否到达推理链路",pair:"同 payload 对比路径；无 headers 的失败不能直接归 GPU",sources:["S11","S13"]},
+    {stage:"首输出",name:"首字节 / 首模型 / 首答案",unit:"ms，P50/P95/P99",meaning:"把保活、真实生成、用户看到答案区分开",pair:"按长度、冷热缓存、思考模式分组；保活不重置业务预算",sources:["S11","S20"]},
+    {stage:"调度",name:"等待时间与等待工作量",unit:"s + 未缓存 Token",meaning:"连接数与工作量两个维度观察队列",pair:"看队列斜率与完成率；无限增长时不存在稳定平均容量",sources:["S25","S29"]},
+    {stage:"输入",name:"未缓存输入 Token/s",unit:"Token/s",meaning:"输入计算压力代理，不能直接当 FLOPs",pair:"联合输入长度分布、Token 加权命中率和 Prefill 步时",sources:["S14","S23"]},
+    {stage:"状态交接",name:"KV 交接尾延迟 / 成功率",unit:"ms / 比例 / bytes",meaning:"区分算得慢与算完却交不过去",pair:"源目标配对、握手、NIC 与双边释放记录",sources:["S22","S23"]},
+    {stage:"输出",name:"引擎 ITL 与客户端最长停顿",unit:"ms/token；ms/event",meaning:"引擎 Token 节奏与用户可见 chunk 节奏分开",pair:"SSE chunk 可能含多个 Token；网络缓冲会使两者不同",sources:["S20"]},
+    {stage:"状态容量",name:"KV 可用块 / 引用 / 抢占",unit:"block / 次数 / 时间",meaning:"预分配显存内部的逻辑余量",pair:"与长度、预留槽及重算关联；具体计数按引擎能力取",sources:["S21","S24"]},
+    {stage:"实例",name:"完整实例 goodput / 进度",unit:"合格任务/s；最后进度时间",meaning:"只统计已加载、预热且能推理的完整单元",pair:"Running Pod、GPU 平均利用率、活进程不代表就绪",sources:["S02","S20"]},
+    {stage:"专家与通信",name:"最慢 rank / 专家偏斜",unit:"max/median 步时；Token 分布",meaning:"定位同步长尾，而非只观察平均 GPU",pair:"拆计算、all-to-all、NIC；热点跟内容还是物理卡移动",sources:["S04","S05","S33"]},
+    {stage:"取消",name:"断开 → 中止 → 状态回收",unit:"ms，按阶段",meaning:"确认用户退出后真实释放资源",pair:"cancel_received 不能替代引擎 abort 和 KV free",sources:["S28"]},
+    {stage:"重试",name:"尝试率 / 原始请求率",unit:"倍数 + 重试序号",meaning:"识别应用、SDK、网关的放大",pair:"同业务 ID 关联但不作为高基数指标标签",sources:["S25"]},
+    {stage:"发布",name:"可服务容量与版本 cohort",unit:"完整实例 / 版本 / 启动阶段秒数",meaning:"把恢复时间算到真实承载，而非进程启动",pair:"版本、SIGTERM、旧 epoch 和流终止同时间轴",sources:["S06","S07","S27"]},
+    {stage:"协议与质量",name:"终态 / schema / 工具 / 任务评测",unit:"各自成功率",meaning:"运输成功、协议成功和能力目标分别衡量",pair:"length、过滤、资源失败、空格 JSON、工具交接分别处理",sources:["S13","S15","S16"]}
+  ],
+  slos: [
+    {title:"完整服务可用性",formula:"符合约定的完整响应数 ÷ 合格原始请求数",text:"合格请求必须预先定义。参数/鉴权错误单列；过载拒绝、服务超时和服务诱发取消仍应可见，不能事后移出分母。"},
+    {title:"首输出与持续输出",formula:"联合达标率 = 同时满足两项的合格请求数 ÷ 合格原始请求数",text:"TTFT 与最长停顿各设 SLO，再评估联合达标率。首模型 Token 与首答案分别观察；按长度、缓存、思考模式和模型分组。"},
+    {title:"协议与任务正确性",formula:"合法终态 → schema → 约定任务验收",text:"平台协议正确性与模型任务质量不是同一个 SLO；不能把全部幻觉当宕机，也不能只看 200。"},
+    {title:"状态与恢复",formula:"新请求 / 在途 / 外部动作 / 计量分别设目标",text:"进程恢复不等于流连续、动作恰好一次或账单一致。取消回收和版本兼容也需要验收。"}
+  ],
+  responseSteps: [
+    {time:"先判断",title:"分阶段、分作用域、分状态",detail:"确认是入口、首输出、输出中、终态还是外部动作；再按租户/模型/版本/实例/机架定位。已可见内容与已提交业务动作决定能否重试。",stop:"证据不足先保留多个候选原因，不启动全池重启。"},
+    {time:"先止损",title:"冻结变化，削减放大，保护健康容量",detail:"暂停相关发布与缩容；有界准入、降低可选工作、限制重试；摘除已确认坏目标。记录被拒绝与被降级请求。",stop:"备用池无余量时不全切；无状态一致性保障时不迁移。"},
+    {time:"再恢复",title:"修复最小故障域，小批恢复",detail:"按定位修复链路、组件或完整实例；兼容单元回退，代表性探针通过再逐批放流。积压也受控释放。",stop:"队列斜率重新为正、P99 恶化、旧 epoch 被选中或质量不合格，立即停放量。"},
+    {time:"后验收",title:"同时验证四种恢复",detail:"新任务完整完成；在途结果明确完整或部分；外部动作无重复/歧义；孤儿状态和计量缺口已核对。保留降级窗口。",stop:"仅健康探针变绿、拒绝量变低或 GPU 利用率回落，都不足以宣布恢复。"}
+  ],
+  drills: [
+    {fault:"单 rank / GPU 退出",expected:"隔离完整实例，不向旧 epoch 发新请求",accept:"N-1 下代表性任务完成；部分流显式失败；完整组重建后验证",guard:"隔离环境、完整备用、停止条件与负责人",case:"F07"},
+    {fault:"冷缓存 + 模板切换",expected:"输入重算受控，不引发二次过载",accept:"miss Token/s、队列和任务 SLO 在声明降级边界内",guard:"限制预热/重算预算，保留旧命名空间",case:"F04"},
+    {fault:"P/D 传输延迟或失败",expected:"坏配对隔离，源/目标状态都回收",accept:"交接超时后无槽位泄漏；恢复后内容一致",guard:"限制链路注入范围，不扩散到共享网络",case:"F06"},
+    {fault:"各阶段主动取消",expected:"取消到引擎中止，状态及时释放",accept:"排队/输入/交接/输出均无孤儿生成，正常请求不被误杀",guard:"只操作合成请求，保留关联 ID",case:"F12"},
+    {fault:"长流滚动更新",expected:"先摘流再排空，合法迁移或明确中断",accept:"长生成、工具、结构化终态均符合能力声明",guard:"保留旧版本容量，不默认所有状态可迁移",case:"F14"},
+    {fault:"多层重试与突发过载",expected:"预算阻断放大，公平拒绝与降级",accept:"attempt/original 有上限；队列能回落而非无限增长",guard:"负载上限和共享系统隔离",case:"F16"},
+    {fault:"发现/缓存事件落后",expected:"陈旧端点被 fence，降级路由有界",accept:"旧 epoch 不被选，索引可快照重建",guard:"保留健康已有流，不触发全池重启",case:"F22"},
+    {fault:"JSON / 终态 / parser 边界",expected:"200 终态失败不误报成功，分协议处理结束",accept:"空格、length、资源失败、Responses failed 均正确分类",guard:"纯契约回放，不执行真实业务动作",case:"F18"},
+    {fault:"工具提交后响应丢失",expected:"先查业务状态，不盲目重放动作",accept:"每个预定动作按稳定 ID 至多提交一次，应执行动作完成或进入明确补偿/人工状态",guard:"模拟业务账本和动作级幂等键",case:"F19"},
+    {fault:"模型 / 内核兼容回归",expected:"灰度止住并回滚兼容单元",accept:"硬件×形状×任务族评测、质量/成本/时延均通过",guard:"影子与小灰度，保留回退版本",case:"F21"},
+    {fault:"租户标识 / 缓存隔离变更",expected:"隔离失败先阻断复用，重算受控",accept:"跨租户负测试通过，无越界且容量可承载",guard:"合成隔离域，无真实敏感数据",case:"F25"},
+    {fault:"日志/遥测/计量依赖变慢",expected:"可选遥测有界降级，关键状态可核对",accept:"无无限缓冲，任务恢复且计量无重复/缺口",guard:"先明确 fail-open/closed 策略，保留最小审计",case:"F26"}
+  ],
+  roadmap: [
+    {p:"P0",title:"把请求看完整",owner:"API + 可观测",deliver:"原始业务 ID、阶段耗时、终态、版本 cohort 与取消回收；敏感内容不进入指标标签。",accept:"能把任意失败归到阶段/范围/状态，并追到相应恢复卡。"},
+    {p:"P0",title:"能拒绝、能止重试、能摘坏实例",owner:"调度 + 入口",deliver:"多资源有界准入、单层重试预算、实例进度探针及最小域熔断。",accept:"过载与单实例故障不会拖垮健康池，拒绝和降级有明确定义。"},
+    {p:"P0",title:"整实例 N-1 与冷态承载",owner:"容量 + 推理",deliver:"按真实长度/缓存分布的 goodput 曲线、完整热备用与启动阶段测量。",accept:"损失一个故障域后仍满足已声明的流量/SLO，或可受控降级。"},
+    {p:"P1",title:"状态生命周期与发布排空",owner:"引擎 + 发布",deliver:"取消传播、交接双边清理、版本兼容清单、可验证排空/迁移边界。",accept:"退出、断开和发布不会产生孤儿计算或无声断流。"},
+    {p:"P1",title:"协议与外部动作可靠性",owner:"SDK + 业务编排",deliver:"端点契约回放、JSON/工具校验、业务动作幂等及未知状态核对。",accept:"200 不掩盖失败，重试不制造重复业务动作。"},
+    {p:"P2",title:"持续故障演练与优化审查",owner:"SRE + 平台各层",deliver:"每项性能优化写出新增故障域、代价、监控、退路与演练；定期更新来源版本。",accept:"优化后的 goodput 增长可复现，恢复能力和任务质量不退化。"}
+  ],
+  claims: [
+    {text:"V4.1 Flash / DeepInfer / Recipe 官方资料真实存在；当前研究以此为锚点。",kind:"official",sources:["S01","S09","S17"]},
+    {text:"公开 DeepInfer 离线核心并未包含完整在线生产系统。",kind:"official",sources:["S01"]},
+    {text:"V3/R1 H800 时代设计可解释历史，但不能当当前硬件/容量承诺。",kind:"history",sources:["S03"]},
+    {text:"大 EP 实例存在单 GPU 故障扩大到整实例的约束。",kind:"official",sources:["S02"]},
+    {text:"专家副本和完整服务容灾备用是不同层级。",kind:"inference",sources:["S05","S02"]},
+    {text:"连接保活不能证明模型已经开始输出。",kind:"contract",sources:["S11"]},
+    {text:"合法 HTTP 状态不保证合法终态和可用任务结果。",kind:"contract",sources:["S13"]},
+    {text:"Responses 不能直接沿用 Chat 的流终止与会话持久化假设。",kind:"contract",sources:["S16"]},
+    {text:"取消信号收到后，仍需证明引擎中止和状态回收。",kind:"reference",sources:["S28"]},
+    {text:"框架迁移能力受版本与请求类型限制，不能外推到任意 DeepSeek 请求。",kind:"reference",sources:["S26"]},
+    {text:"缓存失败可能经重算和重试放大为过载；本研究的因果剧本。",kind:"inference",sources:["S14","S25"]},
+    {text:"两起公开服务退化事件没有公开技术 RCA，不能分配到具体故障卡。",kind:"incident",sources:["S18","S19"]}
+  ]
+});
+</script>
+  <script>/* Connected, offline diagrams. Public mechanisms and proposed dependencies stay distinct. */
+(function (root) {
+  "use strict";
+  const esc = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const svgNode = ({x,y,w,h=96,id,title,lines=[],badge="",generic=false,extra=""},fault=false) =>
+    `<g class="svg-node ${generic?"generic":""} ${extra}" ${id?`role="button" tabindex="0" ${fault?"data-fault-node":"data-atlas-node"}="${id}" aria-label="${esc(title)}"`:'role="img"'}><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3"/><text class="node-badge" x="${x+14}" y="${y+18}">${esc(badge)}</text><text class="node-title" x="${x+14}" y="${y+42}">${esc(title)}</text>${lines.map((line,i)=>`<text class="node-sub" x="${x+14}" y="${y+63+i*17}">${esc(line)}</text>`).join("")}</g>`;
+  const arrow = (id,color) => `<marker id="${id}" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="${color}"/></marker>`;
+  let D, onNode, selectedNode="scheduler", selectedFault="cache-loss", scene="all", guarded=false, expanded=null;
+  const faultNodes = [
+    {id:"heavy",x:20,y:90,w:170,h:105,title:"工作量变重",lines:["长输入 / 长生成","图片 / 复杂 schema"],badge:"触发 · 需求变化",extra:"fault-node trigger",cases:["F02","F03","F27","F28"],why:"原始请求数不变，输入、输出、图片或编译工作量仍可能增长。先比较工作量分布与阶段耗时。"},
+    {id:"cache-loss",x:210,y:90,w:170,h:105,title:"缓存层失效",lines:["前缀 / 版本 / 冷态","先辨 Block 与 SWA"],badge:"触发 · 状态变化",extra:"fault-node trigger",cases:["F04","F05","F25"],why:"区分缓存层级、版本/隔离键、存储与前缀变化，再估恢复成本。丢失 SWA 不应一概当完整上下文重算。"},
+    {id:"rank-loss",x:400,y:90,w:170,h:105,title:"rank / 硬件故障",lines:["坏卡 / 慢卡 / 通信组","可能损失完整实例"],badge:"触发 · 故障域",extra:"fault-node trigger",cases:["F07","F08","F09"],why:"相关请求按完整实例聚集时，关联最慢 rank、硬件和通信证据；不要只重启一个成员或只数空闲 GPU。"},
+    {id:"network",x:590,y:90,w:170,h:105,title:"网络 / 存储异常",lines:["KV 交接 / all-to-all","主机 RDMA / 入口"],badge:"触发 · 依赖",extra:"fault-node trigger",cases:["F06","F09","F10","F24"],why:"入口、专家通信、状态交接和主机访问是不同路径。用配对、拓扑和阶段跨度找真实等待点。"},
+    {id:"rollout",x:780,y:90,w:170,h:105,title:"发布 / 视图变化",lines:["冷启动 / 摘流 / epoch","版本兼容与发现落后"],badge:"触发 · 控制变化",extra:"fault-node trigger",cases:["F13","F14","F21","F22","F26"],why:"把实际版本、就绪/排空、发现视图和流终止对到一条时间轴。新 Pod 不等于新容量。"},
+    {id:"contract-change",x:970,y:90,w:170,h:105,title:"协议 / 编排变化",lines:["端点 / 工具 / 解析器","鉴权 / 预算 / 参数"],badge:"触发 · 契约变化",extra:"fault-node trigger",cases:["F18","F19","F20","F21","F23"],why:"先确定接口能力和终态，再看模型任务质量。不要把永久错误、工具交接和资源失败混作同一种重试。"},
+    {id:"cancel-loss",x:1160,y:90,w:180,h:105,title:"取消传播断裂",lines:["断开未到引擎","中止后状态未回收"],badge:"触发 · 生命周期",extra:"fault-node trigger",cases:["F12"],why:"同一请求的 disconnect、cancel_received、engine_abort、KV_free 缺哪个环节，就定位到对应生命周期边界。"},
+    {id:"prefill-pressure",x:20,y:315,w:300,h:105,title:"输入工作量 / Prefill 压力上升",lines:["未缓存 Token/s ↑，编码或输入池等待","QPS 不变不代表所需算力不变"],badge:"资源层 · 输入",extra:"fault-node resource",cases:["F02","F04","F16"],why:"把输入侧计算、入口 CPU 与交接等待拆开。优先限制重算和高成本突发，再补正确资源。"},
+    {id:"capacity-loss",x:360,y:315,w:300,h:105,title:"健康完整容量骤降",lines:["故障实例摘流；健康池承接更多工作","备用需完整可服务，不能只统计卡"],badge:"资源层 · 容量",extra:"fault-node resource",cases:["F07","F13","F14","F16"],why:"以当前长度/缓存分布下的 goodput 核算 N-k。备用无余量就限流，不能把全部积压瞬间转移。"},
+    {id:"handoff-pressure",x:700,y:315,w:300,h:105,title:"交接 / 状态保留与等待",lines:["双方预留、孤儿计算、远程等待","占用延长也会减少可接新请求"],badge:"资源层 · 状态",extra:"fault-node resource",cases:["F05","F06","F10","F12"],why:"观察交接双方、活动状态和真实中止；减少新准入并清理已确认孤儿状态。当前 DeepSeek Decode 不常态受缓存容量约束。"},
+    {id:"contract-bad",x:1040,y:315,w:300,h:105,title:"协议 / 任务 / 业务状态不一致",lines:["生成完整 ≠ schema / 工具流程成功","动作提交后超时留下“未知”状态"],badge:"语义层 · 契约",extra:"fault-node resource",cases:["F18","F19","F20","F21","F23","F25"],why:"按端点终态、schema、业务动作账本分层校验；处理未知提交先查询，不盲目重放。"},
+    {id:"queue-timeout",x:20,y:550,w:300,h:105,title:"排队 / 首输出超时 / 拒绝",lines:["保活不算生成进度","429 与 503 还需区分作用域"],badge:"用户可见 · 尚未完整输出",extra:"fault-node outcome",cases:["F01","F02","F15","F16"],why:"限制队列与重试，先定位账户/模型/实例作用域。拒绝与降级必须在指标中可见，不能被移出分母。"},
+    {id:"decode-bad",x:360,y:550,w:300,h:105,title:"生成停顿 / 终态失败 / 断流",lines:["HTTP 200 仍可能中途失败","已可见内容不能无声重生成拼接"],badge:"用户可见 · 在途生成",extra:"fault-node outcome",cases:["F03","F07","F11","F14","F17"],why:"区分引擎进度与客户端事件、判断是否部分结果。恢复新请求与恢复在途连续性需要不同验收。"},
+    {id:"orphan",x:700,y:550,w:300,h:105,title:"孤儿计算 / 状态长期占用",lines:["用户退出，后台仍产 Token","in-flight / KV / 预留槽不回落"],badge:"隐性影响 · 占用延长",extra:"fault-node outcome",cases:["F05","F06","F12"],why:"必须以实际引擎停止和资源释放证明取消完成。新重试不能继续叠在未停止的旧工作之上。"},
+    {id:"invalid",x:1040,y:550,w:300,h:105,title:"无效结果 / 错误或重复动作",lines:["空格 JSON / 截断 / parser 差异","工具副作用与计量需独立核对"],badge:"用户可见 · 任务失败",extra:"fault-node outcome",cases:["F18","F19","F20","F21","F26"],why:"技术可用性、协议完整、任务质量、每个业务动作的提交状态分开评估；一个会话可合法包含多个动作。"},
+    {id:"retry",x:240,y:755,w:350,h:100,title:"重试放大尝试率",lines:["应用 × SDK × 网关；坏请求重复进入","过载中失败相关，独立模型偏乐观"],badge:"放大器 A · 正反馈",extra:"fault-node amplifier",cases:["F15","F16","F17","F19"],why:"收敛为单层有预算重试，贯穿总 deadline。输出已可见和外部动作已提交会改变安全重试条件。"},
+    {id:"hold",x:770,y:755,w:350,h:100,title:"占用变长，剩余资源继续减少",lines:["计算 / 状态 / 握手保留得更久","新请求更慢，更多取消与失败"],badge:"放大器 B · 正反馈",extra:"fault-node amplifier",cases:["F05","F06","F12"],why:"缩短无效生命周期、释放确认孤儿状态，并抑制新增高占用工作；不能只优化入口连接数。"},
+    {id:"admission-guard",x:20,y:965,w:420,h:100,title:"切断 A：准入 + 期限 + 重试预算",lines:["有限排队；限制重算；公平拒绝；取消旧工作","保护健康池，记录真实拒绝和降级"],badge:"传播切断点 · 工程建议",extra:"fault-node guard",cases:["F01","F04","F15","F16"],why:"保护阻断放大，不会自动修复源头。先确认取消与可承载范围，再逐批释放积压。"},
+    {id:"domain-guard",x:470,y:965,w:420,h:100,title:"恢复源头：隔离 + 完整备用 + 版本回退",lines:["最小故障域摘流；热备用；兼容单元回滚","通过真实推理探针后再逐批放量"],badge:"恢复条件 · 工程建议",extra:"fault-node guard",cases:["F07","F09","F13","F14","F21","F22"],why:"故障域、备用与回滚目标要事先验证。没有健康余量或兼容保障时，宁可有界降级，也不全切或盲迁。"},
+    {id:"state-guard",x:920,y:965,w:420,h:100,title:"切断 B：真实取消 + 终态与动作校验",lines:["engine abort → 状态回收；端点独立 parser","动作 ID 幂等、未知提交核对、隔离验证"],badge:"传播切断点 · 工程建议",extra:"fault-node guard",cases:["F12","F18","F19","F20","F25","F26"],why:"收到信号、HTTP 成功或模型 stop 都不是终点；需要引擎、协议和业务状态分别证明完成。"}
+  ];
+  const faultEdges = [
+    ["work-p","heavy","prefill-pressure","M105 195 V250 H170 V315"],
+    ["cache-p","cache-loss","prefill-pressure","M295 195 V270 H170 V315"],
+    ["rank-cap","rank-loss","capacity-loss","M485 195 V260 H510 V315"],
+    ["net-transfer","network","handoff-pressure","M675 195 V250 H850 V315"],
+    ["net-cap","network","capacity-loss","M675 195 V230 H640 V315"],
+    ["roll-cap","rollout","capacity-loss","M865 195 V240 H665 V285 H510 V315"],
+    ["roll-contract","rollout","contract-bad","M865 195 V275 H1190 V315"],
+    ["contract-invalid","contract-change","contract-bad","M1055 195 V250 H1190 V315"],
+    ["cancel-orphan","cancel-loss","orphan","M1250 195 V235 H1020 V600 H1000"],
+    ["p-q","prefill-pressure","queue-timeout","M170 420 V550"],
+    ["cap-q","capacity-loss","queue-timeout","M510 420 V470 H170 V550"],
+    ["cap-d","capacity-loss","decode-bad","M510 420 V550"],
+    ["transfer-q","handoff-pressure","queue-timeout","M850 420 V490 H170 V550"],
+    ["transfer-d","handoff-pressure","decode-bad","M850 420 V470 H510 V550"],
+    ["transfer-orphan","handoff-pressure","orphan","M850 420 V550"],
+    ["contract-result","contract-bad","invalid","M1190 420 V550"],
+    ["q-retry","queue-timeout","retry","M170 655 V700 H415 V755"],
+    ["d-retry","decode-bad","retry","M510 655 V710 H415 V755"],
+    ["orphan-hold","orphan","hold","M850 655 V710 H945 V755"],
+    ["result-retry","invalid","retry","M1190 655 V700 H415 V755"],
+    ["retry-p","retry","prefill-pressure","M240 805 H8 V368 H20",true],
+    ["hold-state","hold","handoff-pressure","M1120 805 H1352 V440 H1020 V368 H1000",true]
+  ];
+  const scenes = {
+    all:{title:"全景：多源触发、两类放大器",start:"cache-loss",edges:faultEdges.map(x=>x[0]),text:"箭头表示可能的传播机制，不表示每次必然发生、发生概率或已确认根因。点节点看关联处置；选择一条链可减少视觉干扰。"},
+    cache:{title:"缓存失效 → 输入重算 → 超时重试",start:"cache-loss",edges:["cache-p","p-q","q-retry","retry-p"],text:"先确认丢失的缓存层与重算范围。限制重算/预热和重试预算可切断回灌，但仍需修复前缀、存储或版本问题。"},
+    gpu:{title:"单 rank 故障 → 完整容量下降 → 健康池受压",start:"rank-loss",edges:["rank-cap","cap-q","cap-d","q-retry","d-retry","retry-p"],text:"服务单位是完整实例。摘流保护新请求；已输出的流可能仍中断。备用池无余量时必须限流，而不是把所有积压立即切过去。"},
+    cancel:{title:"取消传播断裂 → 孤儿工作 → 占用延长",start:"cancel-loss",edges:["cancel-orphan","orphan-hold","hold-state","transfer-q","transfer-d","q-retry","d-retry","retry-p"],text:"取消必须贯穿到 engine abort 与状态释放。仅降低前端连接数无法恢复后端容量；超时后立即重试会叠加两份工作。"},
+    release:{title:"发布 / 契约变化 → 在途或语义失败 → 危险重放",start:"rollout",edges:["roll-cap","roll-contract","cap-d","contract-result","d-retry","result-retry","retry-p"],text:"同时查版本/排空与协议能力。终态、schema、每个业务动作独立验收；有外部副作用时先查已提交状态，再决定重试。"}
+  };
+
+  function refs(ids) {
+    return `<div class="refs"><small>依据</small>${ids.map(id=>`<a class="ref" href="#source-${id}">${id}</a>`).join("")}</div>`;
+  }
+  function jumps(ids) {
+    return `<div class="case-jumps">${ids.map(id=>`<button type="button" class="case-jump" data-case="${id}">${id} ${esc(D.cases.find(c=>c.id===id).title)} ↗</button>`).join("")}</div>`;
+  }
+  function shell(type,title,kicker,body,extra="") {
+    return `<header class="panorama-head"><div><span class="panorama-kicker">${kicker}</span><h3>${title}</h3></div><div class="panorama-tools" aria-label="全景图工具"><button type="button" data-map-action="minus" data-map="${type}" aria-label="缩小${title}">−</button><output id="${type}-zoom">100%</output><button type="button" data-map-action="plus" data-map="${type}" aria-label="放大${title}">＋</button><button type="button" data-map-action="fit" data-map="${type}">全览</button><button type="button" data-map-action="expand" data-map="${type}">全屏 ↗</button></div></header>${extra}<div class="panorama-hint"><span><b>点击节点</b> 查看状态、证据与处置</span><span>可缩放、横向/纵向滚动；手机建议全屏后放大</span></div><div class="panorama-viewport" id="${type}-viewport"><div class="panorama-canvas" id="${type}-canvas">${body}</div></div><div class="panorama-detail" id="${type}-panorama-detail" aria-live="polite"></div><div class="panorama-note">单独查看静态大图：<a href="diagrams/${type}-panorama.svg" target="_blank" rel="noopener">SVG 矢量图 ↗</a> · <a href="diagrams/${type}-panorama.png" target="_blank" rel="noopener">PNG 原图 ↗</a></div>`;
+  }
+  function architectureSvg() {
+    const nodes = [
+      {x:20,y:130,w:120,id:null,title:"开发者应用",lines:["输入 / 会话 / 工具","合法动作与状态"],badge:"调用方",generic:true},
+      {x:175,y:130,w:155,id:"edge",title:"API 入口",lines:["连接 / 鉴权 / 配额","内部拆分未公开"],badge:"通用平台职责",generic:true},
+      {x:365,y:130,w:155,id:"recipe",title:"Recipe / 编码",lines:["消息 / 模板 / Token","协议和版本边界"],badge:"官方软件职责"},
+      {x:555,y:130,w:160,id:"scheduler",title:"调度 / 选池",lines:["请求 / 阶段 / 用户","保护策略另作建议"],badge:"公开机制 + 建议"},
+      {x:750,y:130,w:160,id:"prefill",title:"Prefill",lines:["未复用的输入计算","输入侧工作量"],badge:"公开阶段"},
+      {x:945,y:130,w:120,id:"transfer",title:"KV 交接",lines:["状态 / 元数据","双边清理"],badge:"分离引入的依赖"},
+      {x:1100,y:130,w:160,id:"decode",title:"Decode",lines:["活动序列 / 生成","进度与合法终态"],badge:"公开阶段"},
+      {x:365,y:340,w:155,id:"structured",title:"SO 编译",lines:["schema / 解码约束","独立编译职责"],badge:"条件：结构化输出"},
+      {x:555,y:340,w:160,id:"vision",title:"视觉编码 E",lines:["图片 patch → 表征","独立编码资源"],badge:"条件：图片请求"},
+      {x:750,y:340,w:300,id:"cache",h:105,title:"KV 存储 / 分级缓存",lines:["持久 Block 与内存 SWA 生命周期不同","有限回放恢复与全量重算需区分"],badge:"公开分级机制"},
+      {x:1100,y:340,w:160,id:"recipe",title:"解析 / 终态",lines:["SSE / schema / 工具","再做任务验收"],badge:"出站协议职责"},
+      {x:205,y:555,w:240,id:"expert",h:105,title:"MoE / 专家并行",lines:["DeepEP dispatch / combine","EPLB 专家副本与放置"],badge:"实例内部 · 计算与通信"},
+      {x:475,y:555,w:260,id:"gpu",h:105,title:"GPU / 权重 / 专用内核",lines:["FlashMLA / DeepGEMM 等","完整通信组、版本、预热与进度"],badge:"实例内部 · 运行条件"},
+      {x:765,y:555,w:270,id:"transfer",h:105,title:"高速通信与状态路径",lines:["NVLink / RDMA / KV 传输","链路、拓扑、buffer 和超时"],badge:"不同流量分别观测"},
+      {x:1100,y:555,w:160,id:"engram",h:105,title:"Engram / 主机",lines:["GPU 路径：CPU/RDMA","NPU 路径须区别"],badge:"硬件范围已区分"},
+      {x:205,y:840,w:250,id:"control",h:90,title:"发现 / 路由视图 / epoch",lines:["健康与实际端点一致；隔离旧成员"],badge:"通用职责 · 具体产品未公开",generic:true},
+      {x:485,y:840,w:250,id:"control",h:90,title:"容量 / 发布 / 排空",lines:["完整备用、就绪、版本和回退"],badge:"通用职责 · 保障建议",generic:true},
+      {x:765,y:840,w:465,id:"control",h:90,title:"观测 / 安全 / 计量与审计边界",lines:["阶段 trace、终态与质量、取消回收；共享依赖有界保护"],badge:"通用职责 · 内部拓扑未公开",generic:true}
+    ];
+    return `<svg class="panorama-svg architecture-svg" viewBox="0 0 1360 1000" role="img" aria-labelledby="architecture-svg-title architecture-svg-desc"><title id="architecture-svg-title">DeepSeek API 架构全景与状态依赖</title><desc id="architecture-svg-desc">主链路从开发者经过入口、Recipe、调度、Prefill、KV 交接和 Decode；图片与结构化编译是条件分支，缓存、专家、GPU、主机及控制面作为依赖。实线数据流，绿色虚线状态或运行依赖，橙色虚线通用控制职责。</desc><defs>${arrow("architecture-arrow","#426d75")}${arrow("architecture-state-arrow","#3b8875")}${arrow("architecture-control-arrow","#ba7c4e")}</defs>
+      <text class="zone-label" x="20" y="27">A / DATA PLANE · 主请求路径</text>
+      <path class="data-edge" d="M140 178 H175"/><path class="data-edge" d="M330 178 H365"/><path class="data-edge" d="M520 178 H555"/><path class="data-edge" d="M715 178 H750"/><path class="data-edge" d="M910 178 H945"/><path class="data-edge" d="M1065 178 H1100"/>
+      <path class="data-edge" d="M1180 226 V340"/><path class="data-edge" d="M1260 388 H1320 V65 H80 V130"/>
+      <text class="edge-label" x="500" y="57">流式返回：保活 ≠ 模型进度；协议完成 ≠ 任务完成</text>
+      <rect class="zone optional" x="345" y="295" width="385" height="170" rx="3"/><text class="zone-label" x="365" y="317">B / CONDITIONAL BRANCHES</text>
+      <path class="data-edge" d="M442 226 V340"/><path class="data-edge" d="M442 280 H635 V340"/><path class="data-edge" d="M715 388 H735 V280 H830 V226"/>
+      <path class="state-edge" d="M520 388 H535 V260 H1080 V178 H1100"/><text class="edge-label" x="565" y="253">结构化解码约束</text>
+      <rect class="zone" x="738" y="295" width="325" height="170" rx="3"/><text class="zone-label" x="755" y="317">C / STATE & REUSE</text>
+      <path class="state-edge" d="M850 340 V280 H870 V226"/><path class="state-edge" d="M1180 226 V280 H965 V340"/>
+      <text class="edge-label" x="930" y="273">KV 状态读写</text>
+      <rect class="zone engine" x="175" y="500" width="890" height="230" rx="3"/><text class="zone-label" x="205" y="526">D / INSIDE SERVING INSTANCES · P / D 实例的执行与通信</text>
+      <path class="state-edge" d="M750 178 H735 V485 H605 V555"/><path class="state-edge" d="M1100 178 H1080 V485 H900 V555"/>
+      <path class="state-edge" d="M445 607 H475"/><path class="state-edge" d="M735 607 H765"/><path class="state-edge" d="M1035 607 H1100"/>
+      <rect class="domain-boundary" x="192" y="540" width="560" height="138" rx="3"/>
+      <text class="domain-label" x="205" y="702">故障域：当前大 EP 披露中，单 GPU 故障可影响完整实例；专家副本 ≠ 整实例备用</text>
+      <text class="zone-note" x="1100" y="687">主机资源与网络也可在关键路径</text>
+      <rect class="zone control" x="175" y="795" width="1085" height="160" rx="3"/><text class="zone-label" x="205" y="820">E / CONTROL & ASSURANCE · 通用平台职责，未声称具体内部产品与拆分</text>
+      <path class="control-edge" d="M205 885 H150 V178 H175"/><path class="control-edge" d="M610 840 V730"/><path class="control-edge" d="M900 730 V840"/>
+      <text class="edge-label" x="620" y="778">生命周期管理</text><text class="edge-label" x="915" y="778">观测 / 反馈</text>
+      ${nodes.map(x=>svgNode(x)).join("")}
+      <text class="zone-note" x="20" y="984">图例：蓝色实线 = 请求/返回；绿色虚线 = 状态、条件或运行依赖；橙色虚线 = 通用控制职责。不是机房物理拓扑。</text>
+    </svg>`;
+  }
+  function faultSvg() {
+    const activeEdges = new Set(scenes[scene].edges);
+    const activeNodes = new Set();
+    faultEdges.filter(e=>activeEdges.has(e[0])).forEach(e=>{activeNodes.add(e[1]);activeNodes.add(e[2]);});
+    if(scene==="all") faultNodes.forEach(n=>activeNodes.add(n.id));
+    ["admission-guard","domain-guard","state-guard"].forEach(id=>activeNodes.add(id));
+    return `<svg class="panorama-svg fault-svg" viewBox="0 0 1360 1105" role="img" aria-labelledby="fault-svg-title fault-svg-desc"><title id="fault-svg-title">故障触发、传播、正反馈与切断点全景</title><desc id="fault-svg-desc">七种触发因素进入四个资源或契约故障面，再产生首输出、持续输出、状态或业务结果问题。重试和占用延长形成反馈；有界准入、故障域备用、真实取消与业务校验用于切断传播。</desc><defs>${arrow("fault-arrow","#c67d5b")}${arrow("fault-loop-arrow","#b34c31")}${arrow("fault-break-arrow","#4b8c73")}</defs>
+      <text class="zone-label" x="20" y="40">1 / TRIGGERS · 触发不是根因结论；按工作量、变化与作用域找证据</text>
+      <text class="zone-label" x="20" y="290">2 / RESOURCES & CONTRACTS · 算力、容量、状态与契约四个故障面</text>
+      <text class="zone-label" x="20" y="523">3 / USER & HIDDEN IMPACT · 同样的 200 / 超时，可能处于完全不同阶段</text>
+      <text class="zone-label" x="20" y="735">4 / AMPLIFIERS · 故障为什么会越处理越大</text>
+      <text class="zone-label" x="20" y="938">5 / CUTS & RECOVERY CONDITIONS · 切断反馈不等于修复源头</text>
+      ${faultEdges.map(([id,from,to,d,feedback])=>`<path class="fault-edge ${feedback?"feedback":""} ${!activeEdges.has(id)?"dim":""} ${feedback&&guarded?"blocked":""}" data-fault-edge="${id}" d="${d}"/>`).join("")}
+      <path class="guard-line" d="M230 965 V900 H415 V855"/><path class="guard-line" d="M1130 965 V900 H945 V855"/>
+      ${guarded?'<text class="guard-bolt" x="13" y="710">×</text><text class="guard-bolt" x="1334" y="710">×</text>':""}
+      <text class="edge-label" x="32" y="877">${guarded?"尝试回灌已被预算约束（示意）":"红色回路：尝试率再次进入输入侧"}</text>
+      <text class="edge-label" x="900" y="885">${guarded?"无效占用需实际中止并回收":"红色回路：状态保留让可用资源继续减少"}</text>
+      ${faultNodes.map(n=>svgNode({...n,extra:`${n.extra} ${activeNodes.has(n.id)?"":"dim"} ${selectedFault===n.id?"is-selected":""}`},true)).join("")}
+      <text class="zone-note" x="20" y="1093">纯机制推演；边不是发生概率。灰化表示当前链未选中。保护模式只展示阻断正反馈的边界，不承诺自动恢复。</text>
+    </svg>`;
+  }
+  function renderArchitectureDetail(id) {
+    selectedNode=id;
+    const n=D.nodes.find(x=>x.id===id);
+    document.querySelectorAll("[data-atlas-node]").forEach(el=>el.classList.toggle("is-selected",el.dataset.atlasNode===id));
+    document.getElementById("architecture-panorama-detail").innerHTML=`<h4>${esc(n.name)}</h4><span class="tag ${n.kind}">${n.kind==="official"?"官方机制 / 软件职责":"通用职责 · 内部未公开"}</span><p>${esc(n.responsibility)} ${esc(n.coupling)}</p>${jumps(n.cases)}${refs(n.sources)}`;
+  }
+  function renderFaultDetail() {
+    const node=faultNodes.find(x=>x.id===selectedFault);
+    const current=scenes[scene];
+    document.getElementById("failure-panorama-detail").innerHTML=`<h4>${esc(current.title)}</h4><span class="tag inference">工程推演</span><p>${esc(current.text)}</p><p><b>选中：${esc(node.title)}</b> · ${esc(node.why)}</p>${jumps(node.cases)}${refs(["S02","S25","S28","S13"])}${guarded?'<p><b>保护条件：</b>只示意切断回路。仍需定位修复源头，并证明健康余量、真实取消和业务状态正确。</p>':""}`;
+  }
+  function renderFault() {
+    const section=document.getElementById("failure-panorama");
+    const canvas=section.querySelector(".panorama-canvas");
+    if(canvas) canvas.innerHTML=faultSvg();
+    section.querySelectorAll("[data-fault-scene]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.faultScene===scene)));
+    section.querySelectorAll("[data-fault-guard]").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.faultGuard==="on")===guarded)));
+    renderFaultDetail();
+  }
+  function resize(type,action) {
+    const viewport=document.getElementById(`${type}-viewport`);
+    const canvas=document.getElementById(`${type}-canvas`);
+    const old=canvas.getBoundingClientRect().width||1360;
+    const width=action==="fit"?viewport.clientWidth:action==="initial"?Math.max(viewport.clientWidth,innerWidth<640?1020:viewport.clientWidth):Math.max(340,Math.min(3200,old*(action==="plus"?1.2:1/1.2)));
+    const center=(viewport.scrollLeft+viewport.clientWidth/2)/old;
+    canvas.style.width=`${width}px`;
+    document.getElementById(`${type}-zoom`).textContent=`${Math.round(width/1360*100)}%`;
+    if(action!=="initial" && action!=="fit") viewport.scrollLeft=Math.max(0,center*width-viewport.clientWidth/2);
+  }
+  function toggleExpand(type) {
+    const dialog=document.getElementById("atlas-dialog");
+    if(expanded){dialog.close();return;}
+    const section=document.getElementById(`${type}-panorama`);
+    const placeholder=document.createComment("panorama original position");
+    section.before(placeholder);
+    expanded={section,placeholder,type};
+    dialog.append(section);
+    section.querySelector('[data-map-action="expand"]').textContent="退出全屏 ↙";
+    dialog.showModal();
+    requestAnimationFrame(()=>resize(type,innerWidth<640?"initial":"fit"));
+  }
+  function renderMatrix() {
+    const short={edge:"入口",recipe:"协议",scheduler:"调度",prefill:"P",transfer:"交接",decode:"D",cache:"缓存",expert:"EP",gpu:"GPU",engram:"主机",vision:"视觉 E",structured:"SO",control:"控制"};
+    document.getElementById("fault-matrix").innerHTML=`<p class="matrix-note">● 表示主要诊断/处置触点，不代表该组件已被确认为根因。点击故障名称进入完整手册。</p><table class="fault-matrix"><thead><tr><th>故障现象 / 机制</th>${D.nodes.map(n=>`<th title="${esc(n.name)}">${short[n.id]}</th>`).join("")}</tr></thead><tbody>${D.cases.map(c=>`<tr><td><button type="button" class="case-jump" data-case="${c.id}">${c.id} ${esc(c.title)} ↗</button></td>${D.nodes.map(n=>`<td>${c.layers.includes(n.id)?`<span class="matrix-dot" aria-label="${esc(n.name)}诊断触点">●</span>`:""}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  }
+  function init(data,options={}) {
+    D=data;onNode=options.onNode;
+    document.getElementById("architecture-panorama").innerHTML=shell("architecture","架构全景 · 请求、状态与故障域","PANORAMA A / CONNECTED SYSTEM",architectureSvg())+`<div class="panorama-note">当前官方机制依据 S01 / S02 / S04 / S05 / S08 / S09；蓝色连接是简化逻辑，非物理拓扑。橙色平台职责没有声称已公开的内部实现。</div>`;
+    const controls=`<div class="fault-controls"><div class="fault-scene-tabs" aria-label="故障传播链">${[["all","全部传播关系"],["cache","缓存 → 重试"],["gpu","单卡 → 容量"],["cancel","取消 → 占用"],["release","发布 → 结果"]].map(([id,title])=>`<button type="button" data-fault-scene="${id}" aria-pressed="${id===scene}">${title}</button>`).join("")}</div><div class="fault-protection"><span class="fault-mode-label">观察传播边界：</span><button type="button" data-fault-guard="off" aria-pressed="true">无额外保护</button><button type="button" data-fault-guard="on" aria-pressed="false">切断放大回路</button></div></div>`;
+    document.getElementById("failure-panorama").innerHTML=shell("failure","故障全景 · 触发、传播与切断点","PANORAMA B / FAILURE PROPAGATION",faultSvg(),controls);
+    const dialog=document.createElement("dialog");dialog.id="atlas-dialog";dialog.className="atlas-dialog";dialog.setAttribute("aria-label","全屏全景图");document.body.append(dialog);
+    dialog.addEventListener("close",()=>{
+      if(!expanded)return;
+      const {section,placeholder,type}=expanded;
+      placeholder.before(section);placeholder.remove();
+      section.querySelector('[data-map-action="expand"]').textContent="全屏 ↗";
+      expanded=null;requestAnimationFrame(()=>resize(type,"initial"));
+    });
+    renderArchitectureDetail(selectedNode);renderFaultDetail();renderMatrix();
+    resize("architecture","initial");resize("failure","initial");
+    document.addEventListener("click",event=>{
+      if(expanded && event.target.closest("[data-case], a.ref")) {dialog.close();return;}
+      const control=event.target.closest("[data-map-action]");
+      if(control){const {map,mapAction}=control.dataset;if(mapAction==="expand")toggleExpand(map);else resize(map,mapAction);return;}
+      const sceneButton=event.target.closest("[data-fault-scene]");
+      if(sceneButton){scene=sceneButton.dataset.faultScene;selectedFault=scenes[scene].start;renderFault();return;}
+      const guard=event.target.closest("[data-fault-guard]");
+      if(guard){guarded=guard.dataset.faultGuard==="on";renderFault();return;}
+      const node=event.target.closest("[data-atlas-node]");
+      if(node){renderArchitectureDetail(node.dataset.atlasNode);onNode?.(node.dataset.atlasNode);return;}
+      const fault=event.target.closest("[data-fault-node]");
+      if(fault){selectedFault=fault.dataset.faultNode;renderFault();document.querySelector(`[data-fault-node="${selectedFault}"]`)?.focus({preventScroll:true});return;}
+    });
+    document.addEventListener("keydown",event=>{
+      const node=event.target.closest("[data-atlas-node], [data-fault-node]");
+      if(node && ["Enter"," "].includes(event.key)){event.preventDefault();node.dispatchEvent(new MouseEvent("click",{bubbles:true}));}
+    });
+  }
+  root.ResearchAtlas={init,selectNode:id=>{if(D)renderArchitectureDetail(id);}};
+})(globalThis);
+</script>
+  <script>(function () {
+  "use strict";
+  const D = globalThis.RESEARCH;
+  const C = globalThis.ResearchCore;
+  const $ = selector => document.querySelector(selector);
+  const $$ = selector => [...document.querySelectorAll(selector)];
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+  const num = (value, digits = 0) => new Intl.NumberFormat("zh-CN", { maximumFractionDigits:digits }).format(value);
+  const kinds = { official:"官方披露", contract:"API 契约", history:"历史快照", reference:"参考实现", paper:"原始论文", inference:"工程推演", incident:"公开事件" };
+  const symptoms = { latency:"首输出慢", stall:"持续输出卡顿", capacity:"容量与状态", error:"拒绝与错误", stream:"流中断 / 网络", contract:"协议与任务" };
+  const tag = kind => `<span class="tag ${esc(kind)}">${esc(kinds[kind] || kind)}</span>`;
+  const refs = (ids, label = "依据") => `<div class="refs"><small>${esc(label)}</small>${ids.map(id => `<a class="ref" href="#source-${esc(id)}" title="${esc(D.sources.find(x => x.id === id)?.title)}">${esc(id)}</a>`).join("")}</div>`;
+  const list = (items, ordered = false) => `<${ordered ? "ol" : "ul"}>${items.map(x => `<li>${esc(x)}</li>`).join("")}</${ordered ? "ol" : "ul"}>`;
+  const caseLink = (id, text = id) => `<button type="button" class="case-jump" data-case="${esc(id)}">${esc(text)} ↗</button>`;
+  let selectedCase = D.cases.some(c => c.id === new URLSearchParams(location.search).get("case"))
+    ? new URLSearchParams(location.search).get("case") : "F07";
+  let selectedNode = "scheduler";
+  let selectedScenario = "normal";
+  let selectedLab = "workload";
+  const labValues = {
+    workload:{ rps:100, inputTokens:8000, hit:90, seconds:10, outputTokens:1000 },
+    retry:{ rps:100, failure:50, retries:2, layers:1 },
+    capacity:{ instances:4, perInstance:100, load:150, target:70, warmSeconds:120 }
+  };
+
+  function renderStatic() {
+    $("#case-stat").textContent = D.cases.length;
+    $("#source-stat").textContent = D.sources.length;
+    $("#nav-case-count").textContent = D.cases.length;
+    $("#boundaries").innerHTML = D.boundaries.map(x => `<article><h4>${esc(x.title)}</h4><p>${esc(x.text)}</p>${refs(x.sources)}</article>`).join("");
+    $("#layer-filter").insertAdjacentHTML("beforeend", D.nodes.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join(""));
+    $("#tradeoffs").innerHTML = `<table><thead><tr><th>设计</th><th>效率收益</th><th>新增代价</th><th>保障责任</th></tr></thead><tbody>${D.tradeoffs.map(x => `<tr><td>${esc(x.design)}</td><td>${esc(x.benefit)}</td><td>${esc(x.cost)}</td><td>${esc(x.control)}<div>${caseLink(x.case)}</div>${refs(x.sources)}</td></tr>`).join("")}</tbody></table>`;
+    $("#slo-grid").innerHTML = D.slos.map(x => `<article><h3>${esc(x.title)}</h3><code>${esc(x.formula)}</code><p>${esc(x.text)}</p></article>`).join("");
+    $("#metrics-table").innerHTML = `<table><thead><tr><th>阶段 / 观测量</th><th>它要证明什么</th><th>必须配合的证据</th></tr></thead><tbody>${D.metrics.map(x => `<tr><td>${esc(x.stage)}<br>${esc(x.name)}<p class="source-date">${esc(x.unit)}</p></td><td>${esc(x.meaning)}</td><td>${esc(x.pair)}${refs(x.sources)}</td></tr>`).join("")}</tbody></table>`;
+    $("#response-steps").innerHTML = D.responseSteps.map(x => `<article class="response-step"><span class="time">${esc(x.time)}</span><h3>${esc(x.title)}</h3><p>${esc(x.detail)}</p><p class="stop-rule"><b>停止条件</b> · ${esc(x.stop)}</p></article>`).join("");
+    $("#drills-table").innerHTML = `<table><thead><tr><th>注入场景</th><th>希望系统如何反应</th><th>验收证据</th><th>前提与护栏</th></tr></thead><tbody>${D.drills.map(x => `<tr><td>${esc(x.fault)}<div>${caseLink(x.case)}</div></td><td>${esc(x.expected)}</td><td>${esc(x.accept)}</td><td>${esc(x.guard)}</td></tr>`).join("")}</tbody></table>`;
+    $("#roadmap").innerHTML = D.roadmap.map(x => `<article><div class="priority">${esc(x.p)}<small>${esc(x.owner)}</small></div><h4>${esc(x.title)}</h4><p>${esc(x.deliver)}</p><p class="roadmap-accept"><b>验收</b> · ${esc(x.accept)}</p></article>`).join("");
+    $("#claims-table").innerHTML = `<table><thead><tr><th>主张</th><th>证据类别</th><th>来源</th></tr></thead><tbody>${D.claims.map(x => `<tr><td>${esc(x.text)}</td><td>${tag(x.kind)}</td><td>${refs(x.sources,"")}</td></tr>`).join("")}</tbody></table>`;
+    $("#glossary").innerHTML = D.glossary.map(([term, text]) => `<dt>${esc(term)}</dt><dd>${esc(text)}</dd>`).join("");
+  }
+  function renderArchitecture() {
+    let previousGroup = "";
+    $("#architecture-map").innerHTML = D.nodes.map(node => {
+      const group = node.group !== previousGroup ? `<div class="map-group-title">${esc(node.group)}</div>` : "";
+      previousGroup = node.group;
+      return `${group}<button type="button" class="node-button ${node.id === selectedNode ? "selected" : ""}" data-node="${esc(node.id)}" aria-pressed="${node.id === selectedNode}"><span class="node-number">${esc(node.n)}</span><i class="dot ${node.kind === "official" ? "teal" : "amber"}" aria-hidden="true"></i><b>${esc(node.name)}</b><small>${esc(node.sub)}</small></button>`;
+    }).join("") + `<p class="map-note">主路径：入口 → 编码/调度 → Prefill → 状态交接 → Decode → 解析终态。缓存、专家/GPU、主机资源横跨多个阶段。图片 E 与结构化 SO 是条件分支；控制面管理生命周期。</p>`;
+    const node = D.nodes.find(x => x.id === selectedNode);
+    $("#node-detail").innerHTML = `<div class="node-detail-head">${tag(node.kind)}<h3>${esc(node.name)}</h3><p>${esc(node.responsibility)}</p></div><div><h4>持有什么状态</h4><p>${esc(node.state)}</p></div><div><h4>为什么会耦合放大</h4><p>${esc(node.coupling)}</p></div><div><h4>优先找什么证据</h4>${list(node.evidence)}</div><div class="node-related"><h4>关联故障处置</h4><div class="case-jumps">${node.cases.map(id => caseLink(id, `${id} ${D.cases.find(c => c.id === id)?.title || ""}`)).join("")}</div>${refs(node.sources)}</div>`;
+    globalThis.ResearchAtlas?.selectNode(node.id);
+  }
+  function renderJourney() {
+    $("#scenario-tabs").innerHTML = D.scenarios.map(x => `<button role="tab" id="scenario-${x.id}" aria-controls="scenario-panel" aria-selected="${x.id === selectedScenario}" data-scenario="${x.id}">${esc(x.title)}</button>`).join("");
+    const x = D.scenarios.find(s => s.id === selectedScenario);
+    const total = x.stages.reduce((sum, [,v]) => sum + v, 0);
+    const maxIndex = x.stages.reduce((best, [,v], i) => v > x.stages[best][1] ? i : best, 0);
+    $("#scenario-panel").setAttribute("aria-labelledby", `scenario-${x.id}`);
+    $("#scenario-panel").innerHTML = `<div class="journey-top"><div><h3>${esc(x.title)}</h3><small>${esc(x.phase)}</small></div><span class="journey-state ${x.tone === "good" ? "" : "bad"}">${esc(x.status)}</span></div><div class="phase-bars" role="img" aria-label="${esc(x.stages.map(([name,value]) => `${name} ${value}毫秒`).join("，"))}">${x.stages.map(([name,v], i) => `<div class="phase-bar ${x.tone !== "good" && i === maxIndex ? "highlight" : ""}" style="flex:${Math.max(v,20)}"><span>${esc(name)}<small>${num(v)}ms</small></span></div>`).join("")}</div><div class="bar-caption">阶段宽度示意 · 小阶段设最小可读宽度 · 总示意时长 ${num(total)}ms</div><div class="journey-bottom"><ol class="event-list">${x.trace.map(t => `<li>${esc(t)}</li>`).join("")}</ol><div class="journey-finding">${esc(x.finding)}<br><a href="#incidents" data-case="${x.case}">打开对应处置 ${x.case} ↗</a>${refs(x.sources)}</div></div>`;
+  }
+  function filters() {
+    return { query:$("#case-search").value, symptom:$("#symptom-filter").value, layer:$("#layer-filter").value };
+  }
+  function resetFilters() {
+    $("#case-search").value = "";
+    $("#symptom-filter").value = "all";
+    $("#layer-filter").value = "all";
+  }
+  function renderCases() {
+    const matches = C.filterCases(D.cases, filters());
+    $("#case-count").textContent = `${matches.length} / ${D.cases.length} 个处置剧本`;
+    if (!matches.some(x => x.id === selectedCase) && matches.length) selectedCase = matches[0].id;
+    $("#case-list").innerHTML = matches.length ? matches.map(x => `<button type="button" class="case-option ${x.id === selectedCase ? "selected" : ""}" data-case-option="${x.id}" aria-pressed="${x.id === selectedCase}"><span class="case-option-top"><span>${x.id}</span><span>${esc(symptoms[x.symptom])}</span></span><b>${esc(x.title)}</b><small>${esc(x.scope)}</small></button>`).join("") : `<div class="empty-state"><b>没有匹配的故障</b>减少关键词或重置筛选。<br><button type="button" class="text-button" data-reset>重置筛选</button></div>`;
+    if (!matches.length) {
+      $("#case-detail").innerHTML = `<div class="empty-state"><b>保留多个候选原因，按证据缩小范围。</b>可尝试“KV”“取消”“503”“工具”“RDMA”。</div>`;
+      return;
+    }
+    renderCaseDetail(D.cases.find(x => x.id === selectedCase));
+  }
+  function renderCaseDetail(x) {
+    $("#case-detail").innerHTML = `<header class="case-detail-header"><div class="case-meta"><span class="case-id">${x.id}</span>${tag("inference")}<span>${esc(x.scope)}</span></div><h3>${esc(x.title)}</h3><p class="case-summary">${esc(x.summary)}</p><div class="case-meta">协作角色：${esc(x.owner)}</div><div class="case-inline-tools">${refs(x.sources,"机制依据")}<button type="button" class="text-button" id="copy-case">复制处置卡 ↗</button></div></header><section class="case-part"><h4><span>01</span> 看到什么</h4>${list(x.signals)}</section><section class="case-part"><h4><span>02</span> 候选原因与机制</h4>${x.mechanism.map(p => `<p>${esc(p)}</p>`).join("")}</section><section class="case-part"><h4><span>03</span> 怎样判别 / 证伪</h4>${list(x.diagnose,true)}</section><div class="case-recovery-grid"><section class="case-part"><h4><span>04</span> 先止损</h4>${list(x.contain,true)}</section><section class="case-part"><h4><span>05</span> 再恢复</h4>${list(x.restore,true)}</section></div><section class="case-checks"><h4>✓ 恢复验收 · 什么证据才算恢复</h4>${list(x.verify)}</section><section class="case-part"><h4><span>06</span> 提前预防</h4>${list(x.prevent)}</section><div class="danger-note"><b>不要这样处理</b>${esc(x.avoid)}</div><p class="case-bottom-note">动作前提：具备对应平台权限、已定位最小作用域、存在回退条件。调用方无法执行内部实例/网络/缓存操作，应提供脱敏分段证据并管理自身并发、deadline、重试与业务幂等。这里不是生产命令清单。</p>`;
+  }
+  function showCase(id, scroll = true, preserve = false) {
+    if (!D.cases.some(x => x.id === id)) return;
+    if (!preserve) resetFilters();
+    selectedCase = id;
+    renderCases();
+    try {
+      const url = new URL(location.href);
+      url.searchParams.set("case", id);
+      url.hash = "incidents";
+      history.replaceState(null, "", url);
+    } catch (_) { /* file URL history may be restricted by the host. */ }
+    if (scroll) $("#incidents").scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+  const slider = (key, title, min, max, step, value, unit = "") => `<div class="slider-control"><div class="slider-label"><label for="slider-${key}">${esc(title)}</label><output id="value-${key}" for="slider-${key}">${num(value)}${esc(unit)}</output></div><input type="range" id="slider-${key}" data-slider="${key}" min="${min}" max="${max}" step="${step}" value="${value}" aria-label="${esc(title)}"><div class="slider-endpoints"><span>${num(min)}${esc(unit)}</span><span>${num(max)}${esc(unit)}</span></div></div>`;
+  function barRow(label, value, max, base = false, unit = "") {
+    return `<div class="lab-bar-row"><div><span>${esc(label)}</span><b>${num(value,1)} ${esc(unit)}</b></div><div class="bar-track"><div class="bar-fill ${base ? "base" : ""}" style="width:${Math.max(0, Math.min(100, value / Math.max(max, 1) * 100))}%"></div></div></div>`;
+  }
+  function renderLab() {
+    $$("#lab-tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.lab === selectedLab)));
+    $("#lab-panel").setAttribute("aria-labelledby", `lab-tab-${selectedLab}`);
+    const v = labValues[selectedLab];
+    let controls, title, assumptions;
+    if (selectedLab === "workload") {
+      title = "改变同一批请求的工作量";
+      controls = slider("rps","原始到达率 λ",10,300,10,v.rps," req/s")
+        + slider("inputTokens","平均输入长度 I",1000,64000,1000,v.inputTokens," Token")
+        + slider("hit","Token 加权缓存命中 h",0,100,1,v.hit,"%")
+        + slider("seconds","平均系统停留时间 W",1,60,1,v.seconds," s")
+        + slider("outputTokens","平均输出长度 O",100,4000,100,v.outputTokens," Token");
+      assumptions = `<div class="formula">P = λ × I × (1 − h)<br>L = λ × W<br>G = λ × O</div><b>适用边界：</b>无丢弃、无重试的稳定时间平均。P 是未缓存输入工作量代理，不是 FLOPs；长上下文、缓存读带宽和模型结构会改变真实成本。L 是 Little 定律关系，队列无限增长时不能用它宣称存在稳定容量。固定 W 不表示它不会随过载变化。${refs(["S14","S23","S24"],"机制背景")}`;
+    } else if (selectedLab === "retry") {
+      title = "重试怎样反过来加重故障";
+      controls = slider("rps","原始业务请求率 λ",10,300,10,v.rps," req/s")
+        + slider("failure","每次尝试失败概率 p",0,100,1,v.failure,"%")
+        + slider("retries","单层最多额外重试 r",0,4,1,v.retries," 次")
+        + slider("layers","存在重试的层数 m",1,3,1,v.layers," 层");
+      assumptions = `<div class="formula">单层 E[尝试数] = Σ(k=0..r) p^k<br>单层成功概率 = 1 − p^(r+1)<br>多层最坏尝试数 = (r + 1)^m</div><b>适用边界：</b>期望值仅用独立、同分布失败的单层教学模型；多层显示的是最坏次数，不冒充同一概率下的期望值。生产过载失败相关，p 会随尝试量上升，因此通常更危险。内容已可见或动作可能提交后，数学上“再试”不代表业务上安全。${refs(["S25","S13","S15"])}`;
+    } else {
+      title = "损失一个完整实例以后";
+      controls = slider("instances","完整可服务实例 N",1,12,1,v.instances," 个")
+        + slider("perInstance","每实例同分布 goodput C",10,200,10,v.perInstance," req/s")
+        + slider("load","业务到达 λ",10,1200,10,v.load," req/s")
+        + slider("target","目标利用上限 u",50,90,1,v.target,"%")
+        + slider("warmSeconds","故障实例恢复耗时 T",30,600,30,v.warmSeconds," s");
+      assumptions = `<div class="formula">故障后规划预算 = (N − 1) × C × u<br>安全条件：λ ≤ (N − 1) × C × u<br>未限流积压 B ≈ max(λ − (N − 1)C, 0) × T</div><b>适用边界：</b>C 必须来自约定长度分布、缓存状态和 SLO 下的持续实测 goodput；实例必须是完整可服务组。u 是你选择的规划余量，不是 DeepSeek 参数。积压是假设处理率恒定、未限流的粗估；共享故障、冷缓存、网络竞争会让线性模型偏乐观。${refs(["S02","S25"],"约束依据")}`;
+    }
+    $("#lab-panel").innerHTML = `<div class="lab-grid"><div class="lab-controls"><h3>${title}</h3>${controls}</div><div class="lab-result" id="lab-result" aria-live="polite"></div></div><div class="lab-assumptions">${assumptions}</div>`;
+    syncLab();
+  }
+  function syncLab() {
+    const v = labValues[selectedLab];
+    $$("[data-slider]").forEach(input => {
+      const key = input.dataset.slider;
+      const suffix = { hit:"%",failure:"%",target:"%",seconds:" s",warmSeconds:" s",retries:" 次",layers:" 层",instances:" 个" }[key] || (key === "inputTokens" || key === "outputTokens" ? " Token" : " req/s");
+      $(`#value-${key}`).textContent = `${num(v[key])}${suffix}`;
+    });
+    let html;
+    if (selectedLab === "workload") {
+      const r = C.workload({ rps:v.rps,inputTokens:v.inputTokens,hitRate:v.hit/100,seconds:v.seconds,outputTokens:v.outputTokens });
+      const baseline = v.rps * v.inputTokens * 0.1;
+      const scale = r.inputTps / baseline;
+      html = `<div class="lab-result-label">未缓存输入工作量 · 教学值</div><div class="lab-main-value" id="lab-main-value">${num(r.inputTps)}<small>Token/s</small></div><p class="lab-result-sub">同流量、同长度下，相对 90% 命中基线为 <b>${num(scale,2)} 倍</b>。不是 GPU 算力预测。</p><div class="lab-bars">${barRow("90% 命中基线",baseline,Math.max(baseline,r.inputTps),true,"Token/s")}${barRow("当前命中设定",r.inputTps,Math.max(baseline,r.inputTps),false,"Token/s")}</div><div class="lab-secondary"><div><b id="lab-concurrency">${num(r.concurrency)}</b><span>稳定平均在途请求 · λW</span></div><div><b>${num(r.outputTps)}</b><span>输出需求 · Token/s</span></div></div><div class="lab-verdict">试一试：命中从 90% 降至 50%，输入工作量变为 5 倍；W 从 10 秒变成 30 秒，在途数变成 3 倍。</div>`;
+    } else if (selectedLab === "retry") {
+      const p = v.failure/100;
+      const mean = C.retryAmplification(p,v.retries,1);
+      const worst = (v.retries+1) ** v.layers;
+      html = `<div class="lab-result-label">单层期望尝试放大 · 独立模型</div><div class="lab-main-value" id="lab-main-value">${num(mean,3)}<small>倍</small></div><p class="lab-result-sub">原始 ${num(v.rps)} req/s → 单层约 ${num(v.rps*mean,1)} attempts/s。成功概率 ${num((1-p**(v.retries+1))*100,2)}%。</p><div class="lab-bars">${barRow("原始业务请求",v.rps,v.rps*mean,true,"req/s")}${barRow("单层尝试数",v.rps*mean,v.rps*mean,false,"attempts/s")}</div><div class="lab-secondary"><div><b id="retry-worst">${num(worst)}</b><span>${v.layers} 层最坏底层尝试 / 请求</span></div><div><b>${num(v.rps*worst)}</b><span>最坏尝试率 · 非期望值</span></div></div><div class="lab-verdict warn">重试的代价由健康资源承担。先限预算、消除多层叠加；部分输出与外部动作必须另做状态判断。</div>`;
+    } else {
+      const r = C.nMinusOne({instances:v.instances,perInstance:v.perInstance,load:v.load,target:v.target/100,warmSeconds:v.warmSeconds});
+      const cap = Math.max(r.normalBudget,v.load,1);
+      html = `<div class="lab-result-label">N−1 后规划预算 · 教学值</div><div class="lab-main-value" id="lab-main-value">${num(r.failureBudget)}<small>req/s</small></div><p class="lab-result-sub">${v.instances-1} 个完整实例 × ${num(v.perInstance)} req/s × ${v.target}% 余量设定。</p><div class="lab-bars">${barRow("正常规划预算",r.normalBudget,cap,true,"req/s")}${barRow("故障后规划预算",r.failureBudget,cap,false,"req/s")}${barRow("业务到达",v.load,cap,false,"req/s")}</div><div class="lab-secondary"><div><b>${r.margin >= 0 ? "+" : ""}${num(r.margin)}</b><span>故障后规划余量 · req/s</span></div><div><b>${num(r.backlog)}</b><span>恢复前未限流积压粗估 · 请求</span></div></div><div class="lab-verdict ${r.withinBudget ? "" : "warn"}" id="capacity-verdict">${v.instances === 1 ? "失去唯一实例后，没有可服务完整实例。" : r.withinBudget ? "在此线性假设和自选余量下满足 N−1；仍需冷缓存与真实流量验证。" : "不满足所选 N−1 规划余量。先补完整容量或降低准入，不能指望无限排队。"} ${r.backlog === 0 && !r.withinBudget ? "未超过数学硬容量不等于满足尾延迟 SLO。" : ""}</div>`;
+    }
+    $("#lab-result").innerHTML = html;
+  }
+  function renderSources(query = "") {
+    const needle = query.trim().toLocaleLowerCase();
+    const sources = D.sources.filter(x => [x.id,x.title,x.owner,x.scope,x.limit].join(" ").toLocaleLowerCase().includes(needle));
+    $("#source-list").innerHTML = sources.length ? sources.map(x => `<details id="source-${x.id}" class="source-item"><summary><span class="source-id">${x.id}</span><div><strong>${esc(x.title)}</strong><span class="source-date">${esc(x.owner)} · ${esc(x.date)}</span></div>${tag(x.kind)}</summary><div class="source-body"><p><b>支持范围</b> · ${esc(x.scope)}</p><p><b>不能据此推断</b> · ${esc(x.limit)}</p><a class="source-url" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">阅读原始资料 ↗ ${esc(new URL(x.url).hostname)}</a></div></details>`).join("") : `<p class="empty-state">没有匹配来源，试试项目名称或编号。</p>`;
+  }
+  function caseText(x) {
+    return `${x.id} ${x.title}\n${x.summary}\n\n${[
+      ["症状",x.signals],["候选机制",x.mechanism],["判别证据",x.diagnose],
+      ["先止损",x.contain],["再恢复",x.restore],["恢复验收",x.verify],["提前预防",x.prevent]
+    ].map(([title,items]) => `${title}\n${items.map((s,i) => `${i+1}. ${s}`).join("\n")}`).join("\n\n")}\n\n不要这样做：${x.avoid}\n\n性质：工程推演，非 DeepSeek 真实事故或内部手册。\n${x.sources.map(id => `${id} ${D.sources.find(s=>s.id===id).url}`).join("\n")}`;
+  }
+  async function copyCase() {
+    const text = caseText(D.cases.find(x=>x.id===selectedCase));
+    const button = $("#copy-case");
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+      else throw new Error("clipboard unavailable");
+      button.textContent = "已复制完整处置卡";
+    } catch (_) {
+      const area = document.createElement("textarea");
+      area.value = text; area.setAttribute("aria-label","待复制的处置卡");
+      area.style.cssText = "position:fixed;left:-9999px;top:0";
+      document.body.appendChild(area); area.select();
+      const ok = document.execCommand("copy"); area.remove();
+      button.textContent = ok ? "已复制完整处置卡" : "可在完整文字稿中复制";
+    }
+  }
+
+  renderStatic(); renderArchitecture(); renderJourney(); renderCases(); renderLab(); renderSources();
+  globalThis.ResearchAtlas?.init(D,{onNode:id=>{selectedNode=id;renderArchitecture();}});
+  document.addEventListener("click", event => {
+    const nodeButton = event.target.closest("[data-node]");
+    if (nodeButton) { selectedNode = nodeButton.dataset.node; renderArchitecture(); $(`[data-node="${selectedNode}"]`).focus({preventScroll:true}); return; }
+    const scenario = event.target.closest("[data-scenario]");
+    if (scenario) { selectedScenario = scenario.dataset.scenario; renderJourney(); $(`[data-scenario="${selectedScenario}"]`).focus({preventScroll:true}); return; }
+    const option = event.target.closest("[data-case-option]");
+    if (option) { showCase(option.dataset.caseOption,false,true); $(`[data-case-option="${selectedCase}"]`)?.focus({preventScroll:true}); return; }
+    const jump = event.target.closest("[data-case]");
+    if (jump) { event.preventDefault(); showCase(jump.dataset.case); return; }
+    const lab = event.target.closest("[data-lab]");
+    if (lab) { selectedLab=lab.dataset.lab; renderLab(); return; }
+    if (event.target.closest("[data-reset]") || event.target.closest("#reset-filters")) { resetFilters(); renderCases(); return; }
+    if (event.target.closest("#copy-case")) { copyCase(); return; }
+    const sourceRef = event.target.closest('a.ref[href^="#source-"]');
+    if (sourceRef) {
+      event.preventDefault();
+      $("#source-search").value = ""; renderSources();
+      const source = document.getElementById(sourceRef.hash.slice(1));
+      if (source) {
+        source.open=true; source.scrollIntoView({behavior:"smooth",block:"start"});
+        try { const u=new URL(location.href);u.hash=source.id;history.replaceState(null,"",u); } catch (_) {}
+      }
+    }
+  });
+  $("#case-search").addEventListener("input",renderCases);
+  $("#symptom-filter").addEventListener("change",renderCases);
+  $("#layer-filter").addEventListener("change",renderCases);
+  $("#source-search").addEventListener("input",event => renderSources(event.target.value));
+  $("#lab-panel").addEventListener("input",event => {
+    const input=event.target.closest("[data-slider]"); if (!input) return;
+    labValues[selectedLab][input.dataset.slider]=Number(input.value); syncLab();
+  });
+  $("#print-page").addEventListener("click",()=>window.print());
+  document.addEventListener("keydown",event=>{
+    if(event.key==="/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
+      event.preventDefault(); $("#incidents").scrollIntoView({behavior:"smooth"});$("#case-search").focus({preventScroll:true});
+    }
+    const tab=event.target.closest('[role="tab"]');
+    if(tab && ["ArrowRight","ArrowLeft","Home","End"].includes(event.key)) {
+      event.preventDefault();const tabs=[...tab.parentElement.querySelectorAll('[role="tab"]')];const index=tabs.indexOf(tab);
+      const next=event.key==="Home"?0:event.key==="End"?tabs.length-1:(index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length;
+      tabs[next].click();
+      const id=tabs[next].id;if(id) document.getElementById(id)?.focus({preventScroll:true});
+    }
+  });
+  const observer = new IntersectionObserver(entries=>{
+    const visible=entries.filter(x=>x.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top);
+    if(!visible.length) return;
+    const id=visible[0].target.id;
+    $$("#main-nav a").forEach(a=>a.classList.toggle("active",a.hash===`#${id}`));
+  },{rootMargin:"-5% 0px -65% 0px",threshold:0});
+  $$("#overview, .research-section").forEach(el=>observer.observe(el));
+  let printOpen = [];
+  window.addEventListener("beforeprint",()=>{printOpen=$$("details").filter(x=>x.open);$$("details").forEach(x=>x.open=true);});
+  window.addEventListener("afterprint",()=>{$$("details").forEach(x=>x.open=printOpen.includes(x));});
+  if(location.hash.startsWith("#source-")) {
+    const source=document.getElementById(location.hash.slice(1));if(source){source.open=true;requestAnimationFrame(()=>source.scrollIntoView());}
+  }
+  globalThis.RESEARCH_READY = true;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1,
+    "slug": "governance-architecture",
+    "title": "五个治理域，共用一条可验证的请求链",
+    "height": 985,
+    "svg": "01-governance-architecture.svg",
+    "png": "01-governance-architecture.png"
+  },
+  {
+    "id": 2,
+    "slug": "request-lifecycle",
+    "title": "请求结束，不等于所有状态已经收敛",
+    "height": 830,
+    "svg": "02-request-lifecycle.svg",
+    "png": "02-request-lifecycle.png"
+  },
+  {
+    "id": 3,
+    "slug": "admission-control",
+    "title": "准入是控制回路，不只是入口限流",
+    "height": 905,
+    "svg": "03-admission-control.svg",
+    "png": "03-admission-control.png"
+  },
+  {
+    "id": 4,
+    "slug": "inference-diagnosis",
+    "title": "先区分“算得慢”“等得久”和“结果不可用”",
+    "height": 850,
+    "svg": "04-inference-diagnosis.svg",
+    "png": "04-inference-diagnosis.png"
+  },
+  {
+    "id": 5,
+    "slug": "handoff-cancellation",
+    "title": "交接、取消与迟到消息：把所有权画到时序里",
+    "height": 950,
+    "svg": "05-handoff-cancellation.svg",
+    "png": "05-handoff-cancellation.png"
+  },
+  {
+    "id": 6,
+    "slug": "capacity-failure",
+    "title": "复合故障：完整单元减少，缓存又变冷",
+    "height": 875,
+    "svg": "06-capacity-failure.svg",
+    "png": "06-capacity-failure.png"
+  },
+  {
+    "id": 7,
+    "slug": "compatible-rollout",
+    "title": "发布不是换一个镜像，而是维护一个兼容关系",
+    "height": 860,
+    "svg": "07-compatible-rollout.svg",
+    "png": "07-compatible-rollout.png"
+  },
+  {
+    "id": 8,
+    "slug": "completion-slo",
+    "title": "成功率应越过 HTTP 200，仍要保留责任边界",
+    "height": 830,
+    "svg": "08-completion-slo.svg",
+    "png": "08-completion-slo.png"
+  },
+  {
+    "id": 9,
+    "slug": "shared-dependencies",
+    "title": "GPU 健康，公共依赖仍可能放大为全平台故障",
+    "height": 1040,
+    "svg": "09-shared-dependencies.svg",
+    "png": "09-shared-dependencies.png"
+  },
+  {
+    "id": 10,
+    "slug": "response-walkthrough",
+    "title": "一次完整处置：每一步都要有证据和继续条件",
+    "height": 1110,
+    "svg": "10-response-walkthrough.svg",
+    "png": "10-response-walkthrough.png"
+  },
+  {
+    "id": 11,
+    "slug": "governance-evidence",
+    "title": "用证据组织一次架构反查，而不打主观成熟度分",
+    "height": 850,
+    "svg": "11-governance-evidence.svg",
+    "png": "11-governance-evidence.png"
+  }
+]

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#142a3b">
+  <meta name="description" content="以 DeepSeek 公开资料为锚点，研究模型 API 的架构、典型故障、判别证据、恢复与预防。离线交互研究台。">
+  <title>DeepSeek API · 稳定性研究台</title>
+  <style>/*__STYLE__*/</style>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+  <aside class="sidebar" aria-label="研究目录">
+    <a class="wordmark" href="#overview"><span class="brand-mark" aria-hidden="true">d<span>↗</span></span><span>DeepSeek<small>RELIABILITY ATLAS</small></span></a>
+    <div class="sidebar-rule"></div>
+    <p class="sidebar-label">一份关于恢复能力的研究</p>
+    <nav id="main-nav">
+      <a href="#overview" class="active"><span>00</span>研究总览</a>
+      <a href="#architecture"><span>01</span>架构与故障域</a>
+      <a href="#lifecycle"><span>02</span>请求生命周期</a>
+      <a href="#incidents"><span>03</span>故障处置库<i id="nav-case-count">28</i></a>
+      <a href="#lab"><span>04</span>容量与级联实验</a>
+      <a href="#observability"><span>05</span>观测与 SLO</a>
+      <a href="#recovery"><span>06</span>恢复与预防</a>
+      <a href="#evidence"><span>07</span>证据与来源</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <span class="tiny-kicker">RESEARCH SNAPSHOT</span>
+      <strong>2026.11.05</strong>
+      <p>官方披露 · 参考机制 · 工程推演<br>分开阅读，交叉验证。</p>
+      <a href="research.md">完整文字稿 ↗</a>
+    </div>
+  </aside>
+  <main id="main">
+    <div class="topbar"><span>DEEPSEEK / API SERVICE RELIABILITY</span><div><span>中文研究版 · Asia/Shanghai</span><button id="print-page" class="text-button" type="button">打印 / PDF ↗</button></div></div>
+    <section id="overview" class="hero section-anchor">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="rule"></span> 从架构理解故障，从证据走向恢复</div>
+        <h1>让一次请求，<br><em>完整地结束。</em></h1>
+        <p class="hero-lede">以 DeepSeek 为锚点，深入模型 API 平台的计算、状态与故障边界。重点回答：<strong>哪里会坏、为什么坏、怎样恢复、如何预防。</strong></p>
+        <div class="hero-actions"><a href="#incidents" class="button primary">按症状开始排查 <span>↗</span></a><a href="#architecture" class="button quiet">先看完整链路 <span>↓</span></a></div>
+        <div class="hero-footnote">截至 2026-11-05 的公开资料研究 · 未接入生产系统 · 非官方运维手册</div>
+      </div>
+      <div class="hero-figure" role="img" aria-label="稳定性需要同时保证新请求、在途生成、业务结果和状态一致性">
+        <div class="figure-top"><span>RECOVERY IS A VECTOR</span><span class="figure-no">FIG. 01</span></div>
+        <div class="orbit-ring"></div>
+        <div class="figure-path">
+          <div><span class="path-index">01</span><b>请求被接住</b><small>admission</small></div>
+          <i aria-hidden="true"></i>
+          <div><span class="path-index">02</span><b>生成有进度</b><small>progress</small></div>
+          <i aria-hidden="true"></i>
+          <div><span class="path-index">03</span><b>结果可使用</b><small>completion</small></div>
+          <i aria-hidden="true"></i>
+          <div><span class="path-index">04</span><b>状态可核对</b><small>consistency</small></div>
+        </div>
+        <div class="figure-bottom">探针变绿，只是恢复证据的一部分。<span>↗</span></div>
+      </div>
+    </section>
+    <div class="research-strip" aria-label="研究内容规模"><div><b id="case-stat">28</b><span>典型故障剧本</span></div><div><b id="source-stat">34</b><span>一手资料来源</span></div><div><b>06</b><span>请求生命周期场景</span></div><div><b>03</b><span>机制交互实验</span></div></div>
+    <div class="intro-grid">
+      <article><span class="insight-no">I.</span><h3>管理工作量，而不只是 QPS</h3><p>请求长度、缓存、输出预算与健康容量一起决定压力。流量不变，也可能突然过载。</p><a href="#lab">亲手改变假设 ↗</a></article>
+      <article><span class="insight-no">II.</span><h3>恢复新请求，也要处理在途状态</h3><p>流中断、KV 交接、取消、工具副作用各有边界。重新生成不等于原样续写。</p><a href="#lifecycle">拆开一条请求 ↗</a></article>
+      <article><span class="insight-no">III.</span><h3>每份结论，都有适用范围</h3><p>当前部署披露、历史实现、参考框架和处置建议分层标记。公开故障的根因不补写。</p><a href="#evidence">核对证据边界 ↗</a></article>
+    </div>
+    <details class="boundary-box"><summary><span class="tag official">研究边界</span> 这份研究能确认什么，哪些仍未公开？<span class="plus">＋</span></summary><div id="boundaries" class="boundary-grid"></div></details>
+
+    <section id="architecture" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">01 / SYSTEM</div><h2>一条请求，多重故障域。</h2><p>点击组件，查看职责、持有状态、耦合风险与关联处置卡。实线主链路是简化表达；接入和控制面内部拆分属于通用补充，未冒充官方拓扑。</p></header>
+      <div class="legend"><span><i class="dot teal"></i> 官方推理机制 / 软件职责</span><span><i class="dot amber"></i> 通用补充 / 内部实现未公开</span><span class="legend-note">当前锚点：V4.1 Flash Q&A · 历史对照：V3/R1</span></div>
+      <div id="architecture-panorama" class="panorama" aria-label="架构全景图"></div>
+      <div class="architecture-layout">
+        <div class="architecture-map" id="architecture-map" aria-label="可选择的架构组件"></div>
+        <article id="node-detail" class="node-detail" aria-live="polite"></article>
+      </div>
+      <details class="expander"><summary>进一步看：每项效率收益，都新增一项可靠性责任 <span>＋</span></summary><div id="tradeoffs" class="table-wrap"></div></details>
+    </section>
+
+    <section id="lifecycle" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">02 / REQUEST JOURNEY</div><h2>看见真正停住的那一段。</h2><p>改变场景，观察同一个“慢请求”背后的不同机制。以下时长都是教学示意，不是 DeepSeek 线上测量。</p></header>
+      <div class="tab-row" id="scenario-tabs" role="tablist" aria-label="请求生命周期场景"></div>
+      <div id="scenario-panel" class="journey-panel" role="tabpanel" aria-live="polite"></div>
+      <div class="protocol-note"><span class="tag contract">API 契约</span><p><b>Chat 与 Responses 的结束方式不同。</b> Chat 流使用 <code>[DONE]</code>；Responses 使用 <code>response.completed / incomplete / failed</code>。解析器必须按端点处理。终态还要结合 <code>finish_reason</code> 与任务验证。 <a href="#source-S13" class="ref">S13</a> <a href="#source-S16" class="ref">S16</a></p></div>
+    </section>
+
+    <section id="incidents" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">03 / FAILURE FIELD GUIDE</div><h2>从现象出发，走到可验收的恢复。</h2><p>这些是基于公开机制的故障推演，不是 DeepSeek 历史事故列表。时间顺序用于组织行动，不承诺固定分钟数恢复。需要平台内部权限的动作与调用方可做的事分别说明。</p></header>
+      <div id="failure-panorama" class="panorama" aria-label="故障传播全景图"></div>
+      <details class="expander fault-matrix-expander"><summary>故障覆盖矩阵：28 类故障 × 13 个组件触点 <span>＋</span></summary><div id="fault-matrix" class="table-wrap"></div></details>
+      <div class="filter-bar">
+        <label class="search-field"><span aria-hidden="true">⌕</span><input id="case-search" type="search" placeholder="搜索现象、机制、错误码，例如：KV、429、取消" aria-label="搜索故障库"><kbd>/</kbd></label>
+        <label class="sr-only" for="symptom-filter">按症状筛选</label><select id="symptom-filter"><option value="all">全部症状</option><option value="latency">首输出慢</option><option value="stall">持续输出卡顿</option><option value="capacity">容量与状态压力</option><option value="error">拒绝与错误</option><option value="stream">流中断 / 网络</option><option value="contract">协议与任务结果</option></select>
+        <label class="sr-only" for="layer-filter">按组件筛选</label><select id="layer-filter"><option value="all">全部组件</option></select>
+        <button class="text-button" id="reset-filters" type="button">重置</button>
+      </div>
+      <div class="case-results"><span id="case-count" aria-live="polite"></span><span>先证伪，再操作。恢复后要验证，不能只看指标变绿。</span></div>
+      <div class="case-workbench"><div id="case-list" class="case-list" aria-label="故障条目"></div><article id="case-detail" class="case-detail" aria-live="polite"></article></div>
+    </section>
+
+    <section id="lab" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">04 / MECHANISM LAB</div><h2>负载没变，为什么还是扛不住？</h2><p>三个可手算的教学模型，帮助理解工作量、重试和故障余量。所有输入均为假设，不代表 DeepSeek 实测容量，也不能据此估算某型号 GPU 数量。</p></header>
+      <div class="tab-row" id="lab-tabs" role="tablist" aria-label="交互实验"><button role="tab" id="lab-tab-workload" aria-controls="lab-panel" aria-selected="true" data-lab="workload">01 请求与缓存工作量</button><button role="tab" id="lab-tab-retry" aria-controls="lab-panel" aria-selected="false" data-lab="retry">02 重试放大</button><button role="tab" id="lab-tab-capacity" aria-controls="lab-panel" aria-selected="false" data-lab="capacity">03 整实例 N−1 容量</button></div>
+      <div id="lab-panel" class="lab-panel" role="tabpanel" aria-labelledby="lab-tab-workload"></div>
+    </section>
+
+    <section id="observability" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">05 / OBSERVABILITY</div><h2>把“服务正常”，写成可检查的条件。</h2><p>下面是建议的观测语义，不是 DeepSeek 内部实际指标名。阈值要根据任务、工作量和压测确定；没有适用于所有模型的通用百分比。</p></header>
+      <div id="slo-grid" class="slo-grid"></div>
+      <div class="callout"><span class="callout-label">最小诊断上下文</span><p>稳定匿名租户、模型/别名与可见版本、模板/适配器版本、输入/输出/缓存计数、阶段时间、重试序号、终态分类、工具业务状态。高基数请求 ID 放 trace 或受控日志；API key、原始提示词、思考内容和工具敏感参数不进普通指标。</p></div>
+      <details class="expander" open><summary>14 项观测：它证明什么，又需要配合什么？ <span>＋</span></summary><div id="metrics-table" class="table-wrap"></div></details>
+    </section>
+
+    <section id="recovery" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">06 / RESTORE & PREVENT</div><h2>先切断放大，再恢复最小故障域。</h2><p>一次恢复至少有四个目标：新请求能完成、在途结果有明确状态、业务副作用可核对、孤儿计算与计量缺口可收敛。各自设验收，不相互替代。</p></header>
+      <div id="response-steps" class="response-steps"></div>
+      <div class="subsection-heading"><h3>让演练证明退路存在。</h3><p>在已授权的隔离环境验证下列场景。本网页不执行故障注入，不连接任何集群。</p></div>
+      <div id="drills-table" class="table-wrap"></div>
+      <div class="subsection-heading"><h3>从零建设：按证据和恢复能力排序。</h3><p>这里的 P0 / P1 / P2 是建设优先级建议，不是对某次事故的定级。</p></div>
+      <div id="roadmap" class="roadmap"></div>
+    </section>
+
+    <section id="evidence" class="research-section section-anchor">
+      <header class="section-heading"><div class="section-index">07 / EVIDENCE REGISTER</div><h2>让每一层确定性，都有出处。</h2><p>公开状态页只能证明已披露影响，不能反推内部技术根因。动态文档以研究日为快照；关键部署 Q&A 固定到 2026-11-03 的 commit。</p></header>
+      <div class="incident-evidence">
+        <article><span class="tag incident">真实公开事件</span><h3>2026.10.15</h3><p class="incident-time">北京时间 08:11—13:04</p><p>官方页面显示持续 4 小时 52 分。端点是分钟级显示，不据此重算更精确时长。记录涉及 API / 聊天服务退化。</p><strong>技术根因：未公开。</strong><a href="#source-S18" class="ref">S18</a></article>
+        <article><span class="tag incident">真实公开事件</span><h3>2026.09.20</h3><p class="incident-time">北京时间 16:45—16:58</p><p>官方页面记录 Flash 服务退化 13 分钟。历史组件名称可能随后续服务命名更新，不能据此倒推当时版本。</p><strong>技术根因：未公开。</strong><a href="#source-S19" class="ref">S19</a></article>
+      </div>
+      <details class="expander"><summary>主张台账：哪些是披露，哪些是参考与推演？ <span>＋</span></summary><div id="claims-table" class="table-wrap"></div></details>
+      <div class="sources-heading"><h3>一手资料来源</h3><label class="search-field"><span aria-hidden="true">⌕</span><input id="source-search" type="search" placeholder="检索来源、项目或适用范围" aria-label="检索来源"></label></div>
+      <div id="source-list" class="source-list"></div>
+      <details class="expander"><summary>术语速查 <span>＋</span></summary><dl id="glossary" class="glossary"></dl></details>
+    </section>
+    <footer class="page-footer"><div><b>DEEPSEEK / RELIABILITY ATLAS</b><p>研究的价值，在于下一次故障时，能少一次误判。</p></div><div><p>研究快照 · 2026-11-05 · Asia/Shanghai</p><a href="research.md">完整文字稿</a> · <a href="sources.json">结构化来源</a> · <a href="README.md">使用与复现</a></div></footer>
+  </main>
+  <a class="back-top" href="#overview" aria-label="回到顶部">↑</a>
+  <noscript><div class="noscript">本页交互需要 JavaScript。也可打开同目录 <a href="research.md">完整文字稿</a> 阅读全部研究。</div></noscript>
+  <script>/*__CORE__*/</script>
+  <script>/*__DATA__*/</script>
+  <script>/*__CASES__*/</script>
+  <script>/*__OPERATIONS__*/</script>
+  <script>/*__ATLAS__*/</script>
+  <script>/*__APP__*/</script>
+</body>
+</html>
